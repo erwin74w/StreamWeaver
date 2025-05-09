@@ -3,7 +3,7 @@ body {
     padding: 0;
     font-family: Arial, sans-serif;
 }
-/* ... (rest of the CSS is the same) ... */
+
 #streamweaver-overlay {
     position: fixed;
     bottom: 30px;
