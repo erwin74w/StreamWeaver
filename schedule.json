@@ -1,0 +1,46 @@
+{
+  "schedule_name": "My Awesome Stream Schedule",
+  "version": "1.0",
+  "stream_start_reference_time_utc": "2024-03-15T18:00:00Z",
+  "events": [
+    {
+      "event_id": "evt_001",
+      "description": "Show Intro Title Card",
+      "scene_name": "Starting Soon",
+      "source_name": "Intro Title Overlay",
+      "action": "show",
+      "timing_type": "relative_to_stream_start",
+      "offset_seconds": 0,
+      "duration_seconds": 30
+    },
+    {
+      "event_id": "evt_003",
+      "description": "Show 'Be Right Back' Screen",
+      "scene_name": "BRB Scene",
+      "source_name": "BRB Overlay Full",
+      "action": "show",
+      "timing_type": "absolute_utc",
+      "timestamp_utc": "2024-03-15T18:30:00Z",
+      "duration_seconds": 300
+    },
+    {
+      "event_id": "evt_004",
+      "description": "Show Sponsor Logo",
+      "scene_name": "Gameplay Scene",
+      "source_name": "Sponsor Logo Small",
+      "action": "show",
+      "timing_type": "relative_to_stream_start",
+      "offset_seconds": 1800,
+      "duration_seconds": 60
+    },
+    {
+      "event_id": "evt_006",
+      "description": "Show Outro Screen",
+      "scene_name": "Ending Scene",
+      "source_name": "Outro Credits Overlay",
+      "action": "show",
+      "timing_type": "absolute_utc",
+      "timestamp_utc": "2024-03-15T19:55:00Z"
+    }
+  ]
+}
