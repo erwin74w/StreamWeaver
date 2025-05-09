@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const overlayTextElement = document.getElementById('overlay-text');
 
     // --- ABLY CONFIGURATION ---
-    // ROW 4: Replace 'PpmbHg.J6_8kg:qC-BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik' with your actual Ably API Key
     const ABLY_API_KEY = 'PpmbHg.J6_8kg:qC-BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik';
     const CHANNEL_NAME = 'streamweaver-control'; // This is our shared "mailbox"
 
