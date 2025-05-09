@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ABLY CONFIGURATION ---
     // ROW 4: Replace 'PpmbHg.J6_8kg:qC-BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik' with your actual Ably API Key
-    const ABLY_API_KEY = 'YOUR_ABLY_API_KEY_GOES_HERE';
+    const ABLY_API_KEY = 'PpmbHg.J6_8kg:qC-BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik';
     const CHANNEL_NAME = 'streamweaver-control'; // This is our shared "mailbox"
 
     if (!ABLY_API_KEY || ABLY_API_KEY === 'YOUR_ABLY_API_KEY_GOES_HERE') {
