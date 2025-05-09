@@ -3,10 +3,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const overlayTextElement = document.getElementById('overlay-text');
 
     // --- IMPORTANT: REPLACE WITH YOUR ACTUAL ABLY API KEY ---
-    const ABLY_API_KEY = 'YOUR_ABLY_API_KEY'; // e.g., 'xxxxxx.yyyyyy:zzzzzz'
+    const ABLY_API_KEY = 'PpmbHg.J6_8kg:qC-BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik'; // e.g., 'xxxxxx.yyyyyy:zzzzzz'
     const CHANNEL_NAME = 'streamweaver-control';
 
-    if (ABLY_API_KEY === 'YOUR_ABLY_API_KEY') {
+    if (ABLY_API_KEY === 'PpmbHg.J6_8kg:qC-BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik') {
         alert("Please replace 'YOUR_ABLY_API_KEY' in script.js with your actual Ably API Key!");
         console.error("Ably API Key not set in script.js");
         overlayTextElement.textContent = "Ably API Key Missing!";
