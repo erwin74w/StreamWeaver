@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamWeaver Dashboard (Ably)</title>
+    <!-- Include Ably Client Library -->
+    <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; }
+        .controls { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; color: white; transition: background-color 0.3s ease; }
+        #showButton { background-color: #4CAF50; } #showButton:hover { background-color: #45a049; }
+        #hideButton { background-color: #f44336; } #hideButton:hover { background-color: #da190b; }
+        #toggleButton { background-color: #008CBA; } #toggleButton:hover { background-color: #007ba7; }
+        #status { text-align: center; margin-top: 20px; font-style: italic; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>StreamWeaver Control Dashboard (Ably)</h1>
+        <div id="status">Initializing Ably...</div>
+        <div class="controls">
+            <button id="showButton">Show Overlay</button>
+            <button id="hideButton">Hide Overlay</button>
+            <button id="toggleButton">Toggle Overlay</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const showButton = document.getElementById('showButton');
+            const hideButton = document.getElementById('hideButton');
+            const toggleButton = document.getElementById('toggleButton');
+            const statusElement = document.getElementById('status');
+
+            // --- IMPORTANT: REPLACE WITH YOUR ACTUAL ABLY API KEY ---
+            // --- Must be the SAME API Key as in script.js for index.html ---
+            const ABLY_API_KEY = 'YOUR_ABLY_API_KEY'; 
+            const CHANNEL_NAME = 'streamweaver-control'; // Must be the same channel name
+
+            if (ABLY_API_KEY === 'YOUR_ABLY_API_KEY') {
+                alert("Please replace 'YOUR_ABLY_API_KEY' in dashboard.html's script with your actual Ably API Key!");
+                console.error("Ably API Key not set in dashboard.html");
+                statusElement.textContent = "Ably API Key Missing!";
+                return;
+            }
+
+            console.log('Dashboard: Initializing Ably...');
+            const ably = new Ably.Realtime(ABLY_API_KEY);
+            const channel = ably.channels.get(CHANNEL_NAME);
+
+            ably.connection.on('connected', () => {
+                statusElement.textContent = 'Dashboard: Connected to Ably.';
+                console.log('Dashboard: Successfully connected to Ably!');
+            });
+            ably.connection.on('failed', (err) => {
+                statusElement.textContent = 'Dashboard: Ably Connection Failed.';
+                console.error('Dashboard: Ably connection failed:', err);
+            });
+
+
+            function sendMessage(action) {
+                const messagePayload = { action: action };
+                // Publish the message to the 'overlay-action' event on the channel
+                channel.publish('overlay-action', messagePayload, (err) => {
+                    if (err) {
+                        console.error(`Dashboard: Ably error publishing message for action '${action}':`, err);
+                        statusElement.textContent = `Dashboard: Error sending '${action}' command.`;
+                    } else {
+                        console.log(`Dashboard: Ably message published for action '${action}':`, messagePayload);
+                        statusElement.textContent = `Dashboard: Sent '${action}' command via Ably.`;
+                    }
+                });
+            }
+
+            showButton.addEventListener('click', () => sendMessage('show'));
+            hideButton.addEventListener('click', () => sendMessage('hide'));
+            toggleButton.addEventListener('click', () => sendMessage('toggle'));
+        });
+    </script>
+</body>
+</html>
