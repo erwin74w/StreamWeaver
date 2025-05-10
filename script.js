@@ -1,96 +1,95 @@
+// script.js (for index.html - Overlay Logic)
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Text Overlay Elements ---
     const overlayElement = document.getElementById('streamweaver-overlay');
     const overlayTextElement = document.getElementById('overlay-text');
 
-    // --- ABLY CONFIGURATION ---
-    const ABLY_API_KEY = 'PpmbHg.J6_8kg:qC-BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik';
-    const CHANNEL_NAME = 'streamweaver-control'; // This is our shared "mailbox"
+    // --- Logo Overlay Elements ---
+    const logoContainerElement = document.getElementById('logo-container');
 
-    if (!ABLY_API_KEY || ABLY_API_KEY === 'YOUR_ABLY_API_KEY_GOES_HERE') {
-        const errorMsg = "CRITICAL: Ably API Key not set in script.js (for index.html)! Please update it.";
-        console.error(errorMsg);
-        if(overlayTextElement) overlayTextElement.textContent = errorMsg;
-        alert(errorMsg); // Make it very obvious
-        return; // Stop further execution
+    const ABLY_API_KEY = 'PpmbHg.J6_8kg:qC-BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik'; // Note: API Key will be managed by user
+    const CHANNEL_NAME = 'streamweaver-control'; 
+
+    // Basic error check for API key (user will manage the actual key)
+    if (ABLY_API_KEY === 'YOUR_ABLY_API_KEY_WAS_HERE' || !ABLY_API_KEY || ABLY_API_KEY.length < 10) {
+        console.warn("Ably API Key placeholder active. User needs to insert actual key.");
     }
 
-    // --- 1. Fetch and display initial overlay data ---
-    fetch('./overlay_data.json')
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
-        })
-        .then(data => {
-            if (overlayTextElement) overlayTextElement.textContent = data?.message || "Overlay Ready";
-        })
+    // --- 1. Fetch and display initial overlay data (for text overlay) ---
+    fetch('./overlay_data.json') 
+        .then(response => response.ok ? response.json() : Promise.reject(`HTTP error! status: ${response.status}`))
+        .then(data => overlayTextElement.textContent = data?.message || "Overlay Ready")
         .catch(error => {
             console.error("Error fetching overlay_data.json:", error);
-            if (overlayTextElement) overlayTextElement.textContent = "Error loading data";
+            if(overlayTextElement) overlayTextElement.textContent = "Error loading data";
         });
 
-    // --- 2. Show/Hide Functions ---
-    function showOverlay() {
-        if (overlayElement) overlayElement.classList.add('show');
-        console.log("Overlay: SHOWN");
+    // --- 2. Text Overlay Show/Hide Functions ---
+    function showTextOverlay() {
+        if (overlayElement) {
+            overlayElement.classList.add('show');
+            console.log("Text Overlay: SHOWN");
+        }
     }
 
-    function hideOverlay() {
-        if (overlayElement) overlayElement.classList.remove('show');
-        console.log("Overlay: HIDDEN");
+    function hideTextOverlay() {
+        if (overlayElement) {
+            overlayElement.classList.remove('show');
+            console.log("Text Overlay: HIDDEN");
+        }
     }
     
-    // --- 3. Ably Client Setup (Overlay LISTENS for messages) ---
-    console.log('Overlay: Initializing Ably...');
-    const ablyOverlay = new Ably.Realtime(ABLY_API_KEY);
-    const overlayChannel = ablyOverlay.channels.get(CHANNEL_NAME);
-
-    ablyOverlay.connection.on('connected', () => {
-        console.log('Overlay: Successfully connected to Ably!');
-        if(overlayTextElement && overlayTextElement.textContent.indexOf('(Ably Connected)') === -1) {
-            overlayTextElement.textContent = (overlayTextElement.textContent || "") + " (Ably Connected)";
+    // --- 3. Logo Overlay Show/Hide Functions ---
+    function showLogo() {
+        if (logoContainerElement) {
+            logoContainerElement.classList.add('show-logo');
+            console.log("Logo Overlay: SHOWN");
         }
-    });
+    }
 
-    ablyOverlay.connection.on('failed', (err) => {
-        console.error('Overlay: Ably connection failed:', err);
-        if(overlayTextElement) overlayTextElement.textContent = "Ably Connection Failed";
-    });
-    ablyOverlay.connection.on('disconnected', () => {
-        console.warn('Overlay: Ably disconnected. Will attempt to reconnect if configured (Ably handles this by default).');
-         if(overlayTextElement) overlayTextElement.textContent = "Ably Disconnected";
-    });
-    ablyOverlay.connection.on('suspended', () => {
-        console.warn('Overlay: Ably connection suspended. May reconnect.');
-         if(overlayTextElement) overlayTextElement.textContent = "Ably Connection Suspended";
-    });
+    function hideLogo() {
+        if (logoContainerElement) {
+            logoContainerElement.classList.remove('show-logo');
+            console.log("Logo Overlay: HIDDEN");
+        }
+    }
 
-    // Subscribe to messages on the 'overlay-action' EVENT within our CHANNEL
-    overlayChannel.subscribe('overlay-action', (message) => {
-        console.log('Overlay: Received Ably message on event "overlay-action":', message.data);
+    // --- 4. Ably Client Setup ---
+    console.log('Overlay: Initializing Ably...');
+    const ablyOverlay = new Ably.Realtime(ABLY_API_KEY); // User manages this key
+    const controlChannel = ablyOverlay.channels.get(CHANNEL_NAME);
+
+    ablyOverlay.connection.on('connected', () => console.log('Overlay: Successfully connected to Ably!'));
+    ablyOverlay.connection.on('failed', (err) => console.error('Overlay: Ably connection failed:', err));
+    
+    // Subscribe to actions for the TEXT OVERLAY
+    controlChannel.subscribe('overlay-action', (message) => {
+        console.log('Overlay: Received Ably message on "overlay-action":', message.data);
         const actionData = message.data; 
-        if (actionData && actionData.action) {
+        if (actionData?.action) {
             switch (actionData.action.toLowerCase()) {
-                case 'show': showOverlay(); break;
-                case 'hide': hideOverlay(); break;
-                case 'toggle':
-                    if (overlayElement) {
-                        overlayElement.classList.contains('show') ? hideOverlay() : showOverlay();
-                    }
+                case 'show': showTextOverlay(); break;
+                case 'hide': hideTextOverlay(); break;
+                case 'toggle': 
+                    overlayElement.classList.contains('show') ? hideTextOverlay() : showTextOverlay(); 
                     break;
-                default: console.warn('Overlay: Unknown action received via Ably:', actionData.action);
+                default: console.warn('Overlay: Unknown action received for text overlay:', actionData.action);
             }
         }
     });
 
-    // --- 4. Keyboard Triggers for Local Testing (Optional) ---
-    document.addEventListener('keydown', (event) => {
-        if (event.altKey) { // Use Alt key to avoid conflicts
-            if (event.key === 's' || event.key === 'S') { 
-                console.log("Keyboard: Show triggered");
-                showOverlay(); 
-            } else if (event.key === 'h' || event.key === 'H') { 
-                console.log("Keyboard: Hide triggered");
-                hideOverlay(); 
+    // Subscribe to actions for the LOGO OVERLAY
+    controlChannel.subscribe('logo-action', (message) => {
+        console.log('Overlay: Received Ably message on "logo-action":', message.data);
+        const actionData = message.data;
+        if (actionData?.action) {
+            switch (actionData.action.toLowerCase()) {
+                case 'show': showLogo(); break;
+                case 'hide': hideLogo(); break;
+                case 'toggle':
+                    logoContainerElement.classList.contains('show-logo') ? hideLogo() : showLogo();
+                    break;
+                default: console.warn('Overlay: Unknown action received for logo:', actionData.action);
             }
         }
     });
