@@ -24,29 +24,36 @@
 
         /* Styles for overlay status indication on buttons */
         button.overlay-shown {
-            box-shadow: inset 0 0 0 2px #28a745, 0 0 5px #28a745; /* Green inset and outer glow */
+            box-shadow: inset 0 0 0 3px #28a745, 0 0 8px rgba(40, 167, 69, 0.7); /* Brighter Green inset and outer glow */
+            /* background-color: #218838; */ /* Optionally change base color too */
         }
         button.overlay-error {
-            box-shadow: inset 0 0 0 2px #dc3545, 0 0 5px #dc3545; /* Red inset and outer glow */
+            box-shadow: inset 0 0 0 3px #dc3545, 0 0 8px rgba(220, 53, 69, 0.7); /* Brighter Red inset and outer glow */
+            /* background-color: #c82333; */ /* Optionally change base color too */
         }
         .status-text-indicator {
             display: inline-block;
             font-size: 0.85em;
             font-style: italic;
-            margin-left: 5px;
-            padding: 2px 5px;
-            border-radius: 3px;
+            margin-left: 8px; /* Increased margin */
+            padding: 3px 7px; /* Slightly larger padding */
+            border-radius: 4px;
+            min-width: 50px; /* Give it some base width */
+            text-align: center;
+            font-weight: bold;
+            vertical-align: middle; /* Align with button text better */
         }
-        .status-visible { color: green; background-color: #e6ffed; border: 1px solid #c3e6cb;}
-        .status-hidden { color: #6c757d; background-color: #f8f9fa; border: 1px solid #dee2e6;}
-        .status-error { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb;}
+        .status-visible { color: white; background-color: #28a745; border: 1px solid #1e7e34;}
+        .status-hidden { color: #495057; background-color: #e9ecef; border: 1px solid #ced4da;}
+        .status-error { color: white; background-color: #dc3545; border: 1px solid #bd2130;}
+        .status-unknown { color: #6c757d; background-color: #f8f9fa; border: 1px solid #dee2e6;}
 
 
         .control-group { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
         .control-group:last-child { border-bottom: none; }
         .fullscreen-controls button { margin-bottom: 5px; }
         .input-group { margin-bottom: 10px; }
-        #status-footer { margin-top: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; }
+        #status-footer-log { margin-top: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; } /* Renamed ID */
     </style>
 </head>
 <body>
@@ -62,17 +69,17 @@
 
         <div class="control-group fullscreen-controls">
             <h2>Fullscreen Modes</h2>
-            <button id="showBRB" class="warning">Show BRB Screen</button><span id="brb-status-indicator" class="status-text-indicator"></span>
+            <button id="showBRB" class="warning">Show BRB Screen</button><span id="brb-status-indicator" class="status-text-indicator status-unknown">---</span>
             <button id="hideBRB" class="secondary">Hide BRB Screen</button>
             <br>
-            <button id="showCSO" class="dark-green">Show CSO Screen</button><span id="cso-status-indicator" class="status-text-indicator"></span>
+            <button id="showCSO" class="dark-green">Show CSO Screen</button><span id="cso-status-indicator" class="status-text-indicator status-unknown">---</span>
             <button id="hideCSO" class="secondary">Hide CSO Screen</button>
         </div>
 
         <div class="control-group">
             <h2>News Ticker Control</h2>
             <div class="input-group"><label for="tickerTextInput">Ticker Text:</label><textarea id="tickerTextInput" placeholder="Enter text to scroll..."></textarea></div>
-            <button id="showUpdateTicker" class="success">Show / Update Ticker</button><span id="ticker-status-indicator" class="status-text-indicator"></span>
+            <button id="showUpdateTicker" class="success">Show / Update Ticker</button><span id="ticker-status-indicator" class="status-text-indicator status-unknown">---</span>
             <button id="hideTicker" class="secondary">Hide Ticker</button>
         </div>
 
@@ -81,32 +88,32 @@
             <div class="input-group"><label for="ltNameInput">Name:</label><input type="text" id="ltNameInput" placeholder="e.g., Dr. Jane Smith"></div>
             <div class="input-group"><label for="ltTitleInput">Title:</label><input type="text" id="ltTitleInput" placeholder="e.g., Chief Medical Officer"></div>
             <div class="input-group"><label for="ltAffiliationInput">Affiliation:</label><input type="text" id="ltAffiliationInput" placeholder="e.g., City Hospital"></div>
-            <button id="showLowerThird" class="info">Show Lower Third</button><span id="lowerThird-status-indicator" class="status-text-indicator"></span>
+            <button id="showLowerThird" class="info">Show Lower Third</button><span id="lowerThird-status-indicator" class="status-text-indicator status-unknown">---</span>
             <button id="hideLowerThird" class="secondary">Hide Lower Third</button>
         </div>
 
         <div class="control-group">
             <h2>Text Overlay (Subtitles)</h2>
-            <button id="showTextOverlay" class="primary">Show Text</button><span id="text-status-indicator" class="status-text-indicator"></span>
+            <button id="showTextOverlay" class="primary">Show Text</button><span id="text-status-indicator" class="status-text-indicator status-unknown">---</span>
             <button id="hideTextOverlay" class="primary">Hide Text</button>
             <button id="toggleTextOverlay" class="secondary">Toggle Text</button>
         </div>
 
         <div class="control-group">
             <h2>Logo Overlay</h2>
-            <button id="showLogo" class="primary">Show Logo</button><span id="logo-status-indicator" class="status-text-indicator"></span>
+            <button id="showLogo" class="primary">Show Logo</button><span id="logo-status-indicator" class="status-text-indicator status-unknown">---</span>
             <button id="hideLogo" class="primary">Hide Logo</button>
             <button id="toggleLogo" class="secondary">Toggle Logo</button>
         </div>
 
         <div class="control-group">
             <h2>Breaking News Overlay</h2>
-            <button id="showBreakingNews" class="alert">Show Breaking News</button><span id="breakingNews-status-indicator" class="status-text-indicator"></span>
+            <button id="showBreakingNews" class="alert">Show Breaking News</button><span id="breakingNews-status-indicator" class="status-text-indicator status-unknown">---</span>
             <button id="hideBreakingNews" class="alert">Hide Breaking News</button>
             <button id="toggleBreakingNews" class="secondary alert">Toggle Breaking News</button>
         </div>
 
-        <div id="status-footer"><strong>Last Action Sent:</strong> <span id="lastAction">None</span> <br> <strong>Last Overlay Status:</strong> <span id="lastOverlayStatus">Awaiting connection...</span></div>
+        <div id="status-footer-log"><strong>Last Action Sent:</strong> <span id="lastAction">None</span> <br> <strong>General Log:</strong> <span id="generalLog">Awaiting connection...</span></div>
     </div>
 
     <script>
@@ -114,7 +121,7 @@
         const connectAblyButton = document.getElementById('connectAbly');
         const ablyStatusElement = document.getElementById('ablyStatus');
         const lastActionElement = document.getElementById('lastAction');
-        const lastOverlayStatusElement = document.getElementById('lastOverlayStatus');
+        const generalLogElement = document.getElementById('generalLog'); // Renamed from lastOverlayStatusElement
 
 
         // Ticker, LT inputs
@@ -124,14 +131,16 @@
         const ltAffiliationInput = document.getElementById('ltAffiliationInput');
 
         // Mapping overlay IDs (from status messages) to their control button and status indicator
+        // Note: 'Show' buttons are targeted for the primary visual state (box-shadow).
+        // Toggle buttons will also get this state if they exist.
         const overlayUiMap = {
-            brb: { button: document.getElementById('showBRB'), indicator: document.getElementById('brb-status-indicator'), toggleButton: null },
-            cso: { button: document.getElementById('showCSO'), indicator: document.getElementById('cso-status-indicator'), toggleButton: null },
-            ticker: { button: document.getElementById('showUpdateTicker'), indicator: document.getElementById('ticker-status-indicator'), toggleButton: null },
-            lowerThird: { button: document.getElementById('showLowerThird'), indicator: document.getElementById('lowerThird-status-indicator'), toggleButton: null },
-            text: { button: document.getElementById('showTextOverlay'), indicator: document.getElementById('text-status-indicator'), toggleButton: document.getElementById('toggleTextOverlay') },
-            logo: { button: document.getElementById('showLogo'), indicator: document.getElementById('logo-status-indicator'), toggleButton: document.getElementById('toggleLogo') },
-            breakingNews: { button: document.getElementById('showBreakingNews'), indicator: document.getElementById('breakingNews-status-indicator'), toggleButton: document.getElementById('toggleBreakingNews') }
+            brb: { showButton: document.getElementById('showBRB'), indicator: document.getElementById('brb-status-indicator'), toggleButton: null },
+            cso: { showButton: document.getElementById('showCSO'), indicator: document.getElementById('cso-status-indicator'), toggleButton: null },
+            ticker: { showButton: document.getElementById('showUpdateTicker'), indicator: document.getElementById('ticker-status-indicator'), toggleButton: null },
+            lowerThird: { showButton: document.getElementById('showLowerThird'), indicator: document.getElementById('lowerThird-status-indicator'), toggleButton: null },
+            text: { showButton: document.getElementById('showTextOverlay'), indicator: document.getElementById('text-status-indicator'), toggleButton: document.getElementById('toggleTextOverlay') },
+            logo: { showButton: document.getElementById('showLogo'), indicator: document.getElementById('logo-status-indicator'), toggleButton: document.getElementById('toggleLogo') },
+            breakingNews: { showButton: document.getElementById('showBreakingNews'), indicator: document.getElementById('breakingNews-status-indicator'), toggleButton: document.getElementById('toggleBreakingNews') }
         };
         // All other buttons (hide buttons etc.)
         const hideBRBButton = document.getElementById('hideBRB');
@@ -144,13 +153,13 @@
 
 
         const CONTROL_CHANNEL_NAME = 'streamweaver-control';
-        const STATUS_CHANNEL_NAME = 'streamweaver-status'; // For receiving status updates
+        const STATUS_CHANNEL_NAME = 'streamweaver-status'; 
         let ably = null;
         let controlChannel = null;
-        let statusChannel = null; // For receiving status
+        let statusChannel = null; 
 
         function updateLastAction(message) { console.log("Dashboard Sent:", message); lastActionElement.textContent = message; }
-        function updateLastOverlayStatusMsg(message) { console.log("Dashboard Rcvd Status Update:", message); lastOverlayStatusElement.textContent = message; }
+        function updateGeneralLog(message) { console.log("Dashboard General Log:", message); generalLogElement.textContent = message; }
         
         function connectToAbly() {
             const apiKey = ablyApiKeyInput.value;
@@ -158,8 +167,8 @@
                 ablyStatusElement.textContent = "Valid API Key required."; ablyStatusElement.style.color = "red"; return;
             }
             if (ably) {
-                 ably.close(); // Important: Close existing connection if any
-                 ably = null; controlChannel = null; statusChannel = null; // Reset
+                 ably.close(); 
+                 ably = null; controlChannel = null; statusChannel = null; 
             }
             ablyStatusElement.textContent = "Connecting..."; ablyStatusElement.style.color = "orange";
             
@@ -174,10 +183,10 @@
                 ablyStatusElement.textContent = `Connected! (Ctrl: ${CONTROL_CHANNEL_NAME}, Status: ${STATUS_CHANNEL_NAME})`;
                 ablyStatusElement.style.color = "green";
                 controlChannel = ably.channels.get(CONTROL_CHANNEL_NAME);
-                statusChannel = ably.channels.get(STATUS_CHANNEL_NAME); // Get the status channel
-                subscribeToOverlayStatus(); // Subscribe to status updates
+                statusChannel = ably.channels.get(STATUS_CHANNEL_NAME); 
+                subscribeToOverlayStatus(); 
                 enableControls();
-                updateLastOverlayStatusMsg("Awaiting initial overlay status...");
+                updateGeneralLog("Connected to Ably. Awaiting overlay status...");
             });
             ably.connection.on('failed', (err) => { ablyStatusElement.textContent = `Ably connection failed: ${err.reason}`; ablyStatusElement.style.color = "red"; console.error('Dashboard Ably fail:', err); disableControls(); });
             ably.connection.on('closed', () => { ablyStatusElement.textContent = "Ably connection closed."; ablyStatusElement.style.color = "gray"; disableControls(); });
@@ -195,43 +204,56 @@
         function subscribeToOverlayStatus() {
             if (!statusChannel) {
                 console.error("Dashboard: Status channel not available for subscription.");
-                updateLastOverlayStatusMsg("Error: Cannot subscribe to status updates.");
+                updateGeneralLog("Error: Cannot subscribe to status updates.");
                 return;
             }
             statusChannel.subscribe('update', (message) => {
                 const { overlayId, state, message: statusMsg, data } = message.data;
-                updateLastOverlayStatusMsg(`ID: ${overlayId}, State: ${state}${statusMsg ? ', Info: ' + statusMsg : ''}`);
+                
+                // Log specific overlay updates to console for debugging
+                if (overlayId !== 'system') {
+                    console.log(`Dashboard Rcvd Status for ${overlayId}: State: ${state}, Msg: ${statusMsg || 'N/A'}, Data:`, data);
+                }
+
 
                 const ui = overlayUiMap[overlayId];
                 if (ui) {
-                    // Clear previous button states
-                    ui.button.classList.remove('overlay-shown', 'overlay-error');
+                    // Clear previous button states (box-shadow)
+                    ui.showButton.classList.remove('overlay-shown', 'overlay-error');
                     if (ui.toggleButton) ui.toggleButton.classList.remove('overlay-shown', 'overlay-error');
 
-                    ui.indicator.classList.remove('status-visible', 'status-hidden', 'status-error');
+                    // Reset indicator classes and text
+                    ui.indicator.className = 'status-text-indicator'; // Base class
+                    ui.indicator.textContent = '---'; // Default text
 
                     if (state === 'shown') {
-                        ui.button.classList.add('overlay-shown');
-                        if (ui.toggleButton) ui.toggleButton.classList.add('overlay-shown'); // Reflect toggle state
-                        ui.indicator.textContent = "Visible";
+                        ui.showButton.classList.add('overlay-shown');
+                        if (ui.toggleButton) ui.toggleButton.classList.add('overlay-shown'); 
                         ui.indicator.classList.add('status-visible');
+                        ui.indicator.textContent = "Visible";
                     } else if (state === 'hidden') {
-                        // 'overlay-shown' is already removed.
-                        ui.indicator.textContent = "Hidden";
+                        // 'overlay-shown' is already removed from showButton.
+                        // If a toggle button was 'shown', it needs to be cleared.
+                        if (ui.toggleButton) ui.toggleButton.classList.remove('overlay-shown');
                         ui.indicator.classList.add('status-hidden');
+                        ui.indicator.textContent = "Hidden";
                     } else if (state === 'error') {
-                        ui.button.classList.add('overlay-error');
+                        ui.showButton.classList.add('overlay-error');
                         if (ui.toggleButton) ui.toggleButton.classList.add('overlay-error');
-                        ui.indicator.textContent = `Error: ${statusMsg || 'Unknown'}`;
                         ui.indicator.classList.add('status-error');
+                        ui.indicator.textContent = `Error`; // Keep it concise for the indicator
+                        console.error(`Overlay Error (${overlayId}): ${statusMsg || 'Unknown error'}`, data);
+                        updateGeneralLog(`Error on ${overlayId}: ${statusMsg || 'Unknown error'}`); // Also log to general for visibility
                     }
-                } else if (overlayId === 'system' && state === 'connected') {
-                     updateLastOverlayStatusMsg(`Overlay client reported: ${statusMsg}`);
-                } else if (overlayId !== 'system') {
+                } else if (overlayId === 'system') {
+                     updateGeneralLog(`System: ${statusMsg || state}`); // Log system messages to general log
+                } else {
                     console.warn("Dashboard: Received status for unmapped overlayId:", overlayId);
+                    updateGeneralLog(`Received unmapped status for: ${overlayId} - ${state}`);
                 }
             });
             console.log("Dashboard: Subscribed to overlay status updates on channel:", STATUS_CHANNEL_NAME);
+            updateGeneralLog("Subscribed to overlay status. Waiting for updates...");
         }
 
         function disableControls() {
@@ -241,40 +263,42 @@
             // Reset UI indicators on disconnect
             for (const key in overlayUiMap) {
                 const ui = overlayUiMap[key];
-                ui.button.classList.remove('overlay-shown', 'overlay-error');
+                ui.showButton.classList.remove('overlay-shown', 'overlay-error');
                 if (ui.toggleButton) ui.toggleButton.classList.remove('overlay-shown', 'overlay-error');
-                ui.indicator.textContent = "";
-                ui.indicator.className = 'status-text-indicator'; // Reset classes
+                ui.indicator.textContent = "---";
+                ui.indicator.className = 'status-text-indicator status-unknown'; // Reset classes
             }
-             updateLastOverlayStatusMsg("Disconnected. Awaiting connection...");
+             updateGeneralLog("Disconnected. Awaiting connection...");
         }
         function enableControls() {
             document.querySelectorAll('.control-group button, .control-group input, .control-group textarea').forEach(el => el.disabled = false);
+             updateGeneralLog("Controls enabled. Awaiting overlay status...");
         }
 
         connectAblyButton.addEventListener('click', connectToAbly);
 
         // --- Event Listeners for publishing actions ---
-        overlayUiMap.brb.button.addEventListener('click', () => publishAction('brb-action', { action: 'show' }));
+        // (Using showButton from map for consistency)
+        overlayUiMap.brb.showButton.addEventListener('click', () => publishAction('brb-action', { action: 'show' }));
         hideBRBButton.addEventListener('click', () => publishAction('brb-action', { action: 'hide' }));
-        overlayUiMap.cso.button.addEventListener('click', () => publishAction('cso-action', { action: 'show' }));
+        overlayUiMap.cso.showButton.addEventListener('click', () => publishAction('cso-action', { action: 'show' }));
         hideCSOButton.addEventListener('click', () => publishAction('cso-action', { action: 'hide' }));
         
-        overlayUiMap.ticker.button.addEventListener('click', () => { const text = tickerTextInput.value.trim(); if (!text) { alert("Ticker text required."); tickerTextInput.focus(); return; } publishAction('ticker-action', { action: 'show', text: text }); });
+        overlayUiMap.ticker.showButton.addEventListener('click', () => { const text = tickerTextInput.value.trim(); if (!text) { alert("Ticker text required."); tickerTextInput.focus(); return; } publishAction('ticker-action', { action: 'show', text: text }); });
         hideTickerButton.addEventListener('click', () => publishAction('ticker-action', { action: 'hide' }));
         
-        overlayUiMap.lowerThird.button.addEventListener('click', () => { const name = ltNameInput.value.trim(); const title = ltTitleInput.value.trim(); const affiliation = ltAffiliationInput.value.trim(); if (!name) { alert("LT Name required."); ltNameInput.focus(); return; } publishAction('lower-third-action', { action: 'show', name: name, title: title, affiliation: affiliation }); });
+        overlayUiMap.lowerThird.showButton.addEventListener('click', () => { const name = ltNameInput.value.trim(); const title = ltTitleInput.value.trim(); const affiliation = ltAffiliationInput.value.trim(); if (!name) { alert("LT Name required."); ltNameInput.focus(); return; } publishAction('lower-third-action', { action: 'show', name: name, title: title, affiliation: affiliation }); });
         hideLowerThirdButton.addEventListener('click', () => publishAction('lower-third-action', { action: 'hide' }));
         
-        overlayUiMap.text.button.addEventListener('click', () => publishAction('overlay-action', { action: 'show' }));
+        overlayUiMap.text.showButton.addEventListener('click', () => publishAction('overlay-action', { action: 'show' }));
         hideTextButton.addEventListener('click', () => publishAction('overlay-action', { action: 'hide' }));
         overlayUiMap.text.toggleButton.addEventListener('click', () => publishAction('overlay-action', { action: 'toggle' }));
         
-        overlayUiMap.logo.button.addEventListener('click', () => publishAction('logo-action', { action: 'show' }));
+        overlayUiMap.logo.showButton.addEventListener('click', () => publishAction('logo-action', { action: 'show' }));
         hideLogoButton.addEventListener('click', () => publishAction('logo-action', { action: 'hide' }));
         overlayUiMap.logo.toggleButton.addEventListener('click', () => publishAction('logo-action', { action: 'toggle' }));
         
-        overlayUiMap.breakingNews.button.addEventListener('click', () => publishAction('breaking-news-action', { action: 'show' }));
+        overlayUiMap.breakingNews.showButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'show' }));
         hideBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'hide' }));
         overlayUiMap.breakingNews.toggleButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'toggle' }));
 
@@ -283,6 +307,13 @@
         const savedApiKey = localStorage.getItem('streamWeaverAblyApiKey');
         if (savedApiKey) ablyApiKeyInput.value = savedApiKey;
         ablyApiKeyInput.addEventListener('input', () => { localStorage.setItem('streamWeaverAblyApiKey', ablyApiKeyInput.value); });
+
+        // Set initial state for indicators to '---' and unknown
+        Object.values(overlayUiMap).forEach(ui => {
+            ui.indicator.textContent = '---';
+            ui.indicator.classList.add('status-unknown');
+        });
+
     </script>
 </body>
 </html>
