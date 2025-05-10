@@ -6,7 +6,7 @@
     <title>StreamWeaver Control Dashboard</title>
     <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
     <style>
-        /* ... (CSS styles remain the same as the previous version) ... */
+        /* ... (CSS styles remain the same) ... */
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
         .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 700px; margin: auto; }
         h1, h2 { color: #555; }
@@ -134,6 +134,7 @@
     </div>
 
     <script>
+        // --- (Constants and variable declarations remain the same as previous version) ---
         const ablyApiKeyInput = document.getElementById('ablyApiKey');
         const connectAblyButton = document.getElementById('connectAbly');
         const ablyStatusElement = document.getElementById('ablyStatus');
@@ -157,10 +158,8 @@
         
         const allControlButtons = [];
         const allControlInputs = [];
-        // Populate allControlButtons and allControlInputs
         document.querySelectorAll('.control-group button').forEach(btn => allControlButtons.push(btn));
         document.querySelectorAll('.control-group input, .control-group textarea').forEach(input => allControlInputs.push(input));
-        // Ensure connectAblyButton is distinct if it's not in .control-group
         if (!allControlButtons.includes(connectAblyButton)) allControlButtons.push(connectAblyButton);
         if (!allControlInputs.includes(ablyApiKeyInput)) allControlInputs.push(ablyApiKeyInput);
 
@@ -178,7 +177,7 @@
             generalLogElement.style.color = isError ? 'red' : 'inherit';
         }
         
-        function attachChannel(channel, channelNameForLog) {
+        function attachChannel(channel, channelNameForLog) { /* ... (same as previous version) ... */ 
             return new Promise((resolve, reject) => {
                 if (!channel) {
                     reject(new Error(`Channel object for ${channelNameForLog} is null.`));
@@ -201,7 +200,7 @@
             });
         }
 
-        async function connectToAbly() {
+        async function connectToAbly() { /* ... (same as previous version) ... */ 
             const apiKey = ablyApiKeyInput.value;
             if (!apiKey || apiKey === 'YOUR_ABLY_API_KEY_WAS_HERE' || apiKey.length < 10) {
                 ablyStatusElement.textContent = "Valid API Key required."; ablyStatusElement.style.color = "red"; return;
@@ -235,7 +234,6 @@
                     await attachChannel(controlChannel, "Control");
                     await attachChannel(statusChannel, "Status");
 
-                    // If both promises resolved:
                     ablyStatusElement.textContent = `Channels Ready! (Ctrl: ${CONTROL_CHANNEL_NAME}, Status: ${STATUS_CHANNEL_NAME})`;
                     ablyStatusElement.style.color = "green";
                     updateGeneralLog("All channels attached. Subscribing to status updates...");
@@ -243,24 +241,38 @@
                     enableControls();
 
                 } catch (error) {
-                    // attachChannel already logs specific errors.
-                    // ablyStatusElement might already be red from attachChannel.
                     console.error("Dashboard: One or more channels failed to attach.", error);
                     updateGeneralLog("Failed to attach all required channels. Check console and API key permissions.", true);
-                    if (ablyStatusElement.style.color !== "red") { // If not already set by a specific channel failure
+                    if (ablyStatusElement.style.color !== "red") { 
                          ablyStatusElement.textContent = "Channel attachment failed.";
                          ablyStatusElement.style.color = "red";
                     }
-                    disableControls(); // Keep controls disabled if channels aren't ready
+                    disableControls(); 
                 }
             });
             
-            ably.connection.on('failed', (err) => { /* ... same ... */ });
-            ably.connection.on('closed', () => { /* ... same ... */ });
-            ably.connection.on('disconnected', () => { /* ... same ... */ });
+            ably.connection.on('failed', (err) => { 
+                ablyStatusElement.textContent = `Ably connection failed: ${err.reason || err.message || 'Unknown error'}`; 
+                ablyStatusElement.style.color = "red"; 
+                updateGeneralLog(`Ably connection failed: ${err.reason || err.message || 'Unknown error'}`, true);
+                console.error('Dashboard Ably fail:', err); 
+                disableControls(); 
+            });
+            ably.connection.on('closed', () => { 
+                ablyStatusElement.textContent = "Ably connection closed."; 
+                ablyStatusElement.style.color = "gray"; 
+                updateGeneralLog("Ably connection closed.");
+                disableControls(); 
+            });
+            ably.connection.on('disconnected', () => { 
+                ablyStatusElement.textContent = "Ably disconnected. Will attempt to reconnect."; 
+                ablyStatusElement.style.color = "orange"; 
+                updateGeneralLog("Ably disconnected. Attempting to reconnect...");
+                disableControls(); 
+            });
         }
-
-        function publishAction(eventName, payload) {
+        
+        function publishAction(eventName, payload) { /* ... (same as previous version) ... */ 
             if (!controlChannel || controlChannel.state !== 'attached') { 
                 const msg = `Error: Control channel not attached (state: ${controlChannel ? controlChannel.state : 'null'}). Cannot send.`;
                 updateLastAction(msg); 
@@ -268,7 +280,6 @@
                 ablyStatusElement.textContent = "Control channel not ready."; ablyStatusElement.style.color = "red"; 
                 return; 
             }
-            // ... (rest of publishAction is the same) ...
             controlChannel.publish(eventName, payload, (err) => {
                 if (err) { 
                     updateLastAction(`Error publishing ${eventName}: ${err.message}`); 
@@ -285,37 +296,72 @@
                 updateGeneralLog(msg, true);
                 return;
             }
-            // ... (rest of subscribeToOverlayStatus is the same) ...
+            
             console.log("Dashboard: Subscribing to messages on attached Status Channel:", STATUS_CHANNEL_NAME);
             updateGeneralLog("Subscribed to overlay status channel. Waiting for updates...");
 
             statusChannel.subscribe('update', (message) => {
-                const { overlayId, state, message: statusMsg, data } = message.data;
-                const ui = overlayUiMap[overlayId];
-                if (ui && ui.light) {
-                    ui.light.className = 'status-light'; 
-                    if (state === 'shown') ui.light.classList.add('visible');
-                    else if (state === 'hidden') ui.light.classList.add('hidden');
-                    else if (state === 'error') {
-                        ui.light.classList.add('error');
-                        console.error(`Overlay Error (${overlayId}): ${statusMsg || 'Unknown error'}`, data);
-                        updateGeneralLog(`Error on ${overlayId}: ${statusMsg || 'Unknown error'}`, true);
-                    } else ui.light.classList.add('unknown');
-                } else if (overlayId === 'system') {
-                     updateGeneralLog(`System Status: ${statusMsg || state}`);
-                } else if (overlayId !== 'system') { 
-                    // console.warn("Dashboard: Received status for unmapped overlayId or missing light element:", overlayId);
+                // <<< --- START OF CRITICAL DEBUGGING AREA --- >>>
+                console.log("Dashboard: statusChannel 'update' RECEIVED:", JSON.stringify(message.data)); // Log raw message data
+
+                try {
+                    const { overlayId, state, message: statusMsg, data } = message.data;
+                    console.log(`Dashboard: Processing status for overlayId='${overlayId}', state='${state}'`);
+
+                    const ui = overlayUiMap[overlayId];
+                    
+                    if (ui && ui.light) {
+                        console.log(`Dashboard: Found UI mapping for '${overlayId}'. Light element:`, ui.light);
+                        ui.light.className = 'status-light'; // Reset classes first
+                        
+                        if (state === 'shown') {
+                            ui.light.classList.add('visible');
+                            console.log(`Dashboard: Set '${overlayId}' light to VISIBLE.`);
+                        } else if (state === 'hidden') {
+                            ui.light.classList.add('hidden');
+                            console.log(`Dashboard: Set '${overlayId}' light to HIDDEN.`);
+                        } else if (state === 'error') {
+                            ui.light.classList.add('error');
+                            console.error(`Dashboard: Overlay Error reported for '${overlayId}': ${statusMsg || 'Unknown error'}`, data);
+                            updateGeneralLog(`Error on ${overlayId}: ${statusMsg || 'Unknown error'}`, true);
+                            console.log(`Dashboard: Set '${overlayId}' light to ERROR.`);
+                        } else {
+                            ui.light.classList.add('unknown');
+                            console.log(`Dashboard: Set '${overlayId}' light to UNKNOWN (unrecognized state: ${state}).`);
+                        }
+                    } else if (overlayId === 'system') {
+                        updateGeneralLog(`System Status: ${statusMsg || state}`);
+                        console.log(`Dashboard: Processed SYSTEM message: ${statusMsg || state}`);
+                    } else if (overlayId !== 'system') { 
+                        console.warn(`Dashboard: No UI mapping or light element found for overlayId: '${overlayId}'. Message data:`, message.data);
+                    }
+                } catch (e) {
+                    console.error("Dashboard: ERROR INSIDE statusChannel.subscribe CALLBACK:", e);
+                    updateGeneralLog("Error processing status update: " + e.message, true);
                 }
+                // <<< --- END OF CRITICAL DEBUGGING AREA --- >>>
             });
         }
 
-        function disableControls() { /* ... (same as before) ... */ }
-        function enableControls() { /* ... (same as before) ... */ }
+        function disableControls() { /* ... (same as before) ... */ 
+             allControlButtons.forEach(btn => btn.disabled = true);
+            allControlInputs.forEach(input => input.disabled = true);
+            ablyApiKeyInput.disabled = false; 
+            connectAblyButton.disabled = false; 
+            for (const key in overlayUiMap) {
+                if (overlayUiMap[key] && overlayUiMap[key].light) {
+                    overlayUiMap[key].light.className = 'status-light unknown';
+                }
+            }
+        }
+        function enableControls() { /* ... (same as before) ... */ 
+            allControlButtons.forEach(btn => btn.disabled = false);
+            allControlInputs.forEach(input => input.disabled = false);
+        }
 
         // --- Event Listeners and Initial Setup (same as before) ---
         connectAblyButton.addEventListener('click', connectToAbly);
         // ... (all other event listeners remain the same)
-        // For brevity, I'll assume these are correctly populated as in the previous version.
         overlayUiMap.brb.showButton.addEventListener('click', () => publishAction('brb-action', { action: 'show' }));
         document.getElementById('hideBRB').addEventListener('click', () => publishAction('brb-action', { action: 'hide' }));
         overlayUiMap.cso.showButton.addEventListener('click', () => publishAction('cso-action', { action: 'show' }));
@@ -325,21 +371,20 @@
         overlayUiMap.lowerThird.showButton.addEventListener('click', () => { const name = ltNameInput.value.trim(); const title = ltTitleInput.value.trim(); const affiliation = ltAffiliationInput.value.trim(); if (!name) { alert("LT Name required."); ltNameInput.focus(); return; } publishAction('lower-third-action', { action: 'show', name: name, title: title, affiliation: affiliation }); });
         document.getElementById('hideLowerThird').addEventListener('click', () => publishAction('lower-third-action', { action: 'hide' }));
         overlayUiMap.text.showButton.addEventListener('click', () => publishAction('overlay-action', { action: 'show' }));
-        if (overlayUiMap.text.toggleButton) { // Check if toggleButton exists
+        if (overlayUiMap.text.toggleButton) { 
             document.getElementById('hideTextOverlay').addEventListener('click', () => publishAction('overlay-action', { action: 'hide' }));
             overlayUiMap.text.toggleButton.addEventListener('click', () => publishAction('overlay-action', { action: 'toggle' }));
         }
         overlayUiMap.logo.showButton.addEventListener('click', () => publishAction('logo-action', { action: 'show' }));
-        if (overlayUiMap.logo.toggleButton) { // Check if toggleButton exists
+        if (overlayUiMap.logo.toggleButton) { 
             document.getElementById('hideLogo').addEventListener('click', () => publishAction('logo-action', { action: 'hide' }));
             overlayUiMap.logo.toggleButton.addEventListener('click', () => publishAction('logo-action', { action: 'toggle' }));
         }
         overlayUiMap.breakingNews.showButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'show' }));
-        if (overlayUiMap.breakingNews.toggleButton) { // Check if toggleButton exists
+        if (overlayUiMap.breakingNews.toggleButton) { 
              document.getElementById('hideBreakingNews').addEventListener('click', () => publishAction('breaking-news-action', { action: 'hide' }));
             overlayUiMap.breakingNews.toggleButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'toggle' }));
         }
-
 
         disableControls();
         updateGeneralLog("Dashboard loaded. Please connect to Ably.");
