@@ -1,11 +1,20 @@
 // js/overlays/CSOOverlay.js
+import { DEBUG } from '../ably-config.js';
+
+const LOG_PREFIX = "[CSOOverlay]";
+const logger = {
+    log: (...args) => DEBUG && console.log(LOG_PREFIX, ...args),
+    error: (...args) => console.error(LOG_PREFIX, ...args),
+};
+
 export class CSOOverlay {
     constructor(elementId, onShowCallback, onHideCallback) {
         this.containerElement = document.getElementById(elementId);
-        this._onShowCallback = onShowCallback; // Manager provides this to hide other overlays
-        this._onHideCallback = onHideCallback; // Manager provides this for post-hide actions
+        this._onShowCallback = onShowCallback; 
+        this._onHideCallback = onHideCallback; 
 
-        if (!this.containerElement) console.error(`CSOOverlay: Element with ID '${elementId}' not found.`);
+        if (!this.containerElement) logger.error(`Element with ID '${elementId}' not found.`);
+        logger.log("CSOOverlay instance created.");
     }
 
     show() {
@@ -14,14 +23,14 @@ export class CSOOverlay {
                 this._onShowCallback();
             }
             this.containerElement.classList.add('show-cso');
-            console.log("CSO Overlay: SHOWN");
+            logger.log("SHOWN");
         }
     }
 
     hide() {
         if (this.containerElement) {
             this.containerElement.classList.remove('show-cso');
-            console.log("CSO Overlay: HIDDEN");
+            logger.log("HIDDEN");
             if (typeof this._onHideCallback === 'function') {
                 this._onHideCallback();
             }
