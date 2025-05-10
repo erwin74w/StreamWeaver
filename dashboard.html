@@ -17,6 +17,8 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 700px;
+            margin: auto;
         }
         h1, h2 {
             color: #555;
@@ -24,6 +26,7 @@
         label {
             display: block;
             margin-bottom: 5px;
+            font-weight: bold;
         }
         input[type="text"], input[type="password"] {
             width: 100%;
@@ -53,19 +56,28 @@
         button.secondary:hover {
             background-color: #545b62;
         }
-        button.alert { /* Style for Breaking News buttons */
+        button.alert { 
             background-color: #dc3545;
         }
         button.alert:hover {
             background-color: #c82333;
         }
+        button.info { /* Style for Lower Third buttons */
+            background-color: #17a2b8;
+        }
+        button.info:hover {
+            background-color: #117a8b;
+        }
         .control-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             padding-bottom: 20px;
             border-bottom: 1px solid #eee;
         }
         .control-group:last-child {
             border-bottom: none;
+        }
+        .input-group {
+            margin-bottom: 10px;
         }
         #status {
             margin-top: 20px;
@@ -84,6 +96,24 @@
             <input type="password" id="ablyApiKey" value="YOUR_ABLY_API_KEY_WAS_HERE" placeholder="Enter your Ably API Key">
             <button id="connectAbly">Connect to Ably</button>
             <div id="ablyStatus" style="margin-top: 5px; font-style: italic;">Not connected.</div>
+        </div>
+
+        <div class="control-group">
+            <h2>Lower Third Control</h2>
+            <div class="input-group">
+                <label for="ltNameInput">Name:</label>
+                <input type="text" id="ltNameInput" placeholder="e.g., Dr. Jane Smith">
+            </div>
+            <div class="input-group">
+                <label for="ltTitleInput">Title / Function:</label>
+                <input type="text" id="ltTitleInput" placeholder="e.g., Chief Medical Officer">
+            </div>
+            <div class="input-group">
+                <label for="ltAffiliationInput">Affiliation / Company:</label>
+                <input type="text" id="ltAffiliationInput" placeholder="e.g., City Hospital">
+            </div>
+            <button id="showLowerThird" class="info">Show Lower Third</button>
+            <button id="hideLowerThird" class="secondary">Hide Lower Third</button>
         </div>
 
         <div class="control-group">
@@ -126,10 +156,16 @@
         const hideLogoButton = document.getElementById('hideLogo');
         const toggleLogoButton = document.getElementById('toggleLogo');
 
-        // Breaking News Buttons
         const showBreakingNewsButton = document.getElementById('showBreakingNews');
         const hideBreakingNewsButton = document.getElementById('hideBreakingNews');
         const toggleBreakingNewsButton = document.getElementById('toggleBreakingNews');
+
+        // Lower Third Inputs and Buttons
+        const ltNameInput = document.getElementById('ltNameInput');
+        const ltTitleInput = document.getElementById('ltTitleInput');
+        const ltAffiliationInput = document.getElementById('ltAffiliationInput');
+        const showLowerThirdButton = document.getElementById('showLowerThird');
+        const hideLowerThirdButton = document.getElementById('hideLowerThird');
 
         const CHANNEL_NAME = 'streamweaver-control';
         let ably = null;
@@ -141,32 +177,25 @@
         }
 
         function connectToAbly() {
+            // (Same as before)
             const apiKey = ablyApiKeyInput.value;
             if (!apiKey || apiKey === 'YOUR_ABLY_API_KEY_WAS_HERE' || apiKey.length < 10) {
                 ablyStatusElement.textContent = "Please enter a valid Ably API Key.";
                 ablyStatusElement.style.color = "red";
-                console.warn("Dashboard: Ably API Key placeholder active or invalid.");
                 return;
             }
-
-            if (ably) {
-                ably.close(); 
-            }
-
+            if (ably) ably.close();
             ablyStatusElement.textContent = "Connecting to Ably...";
             ablyStatusElement.style.color = "orange";
             ably = new Ably.Realtime(apiKey);
-
             ably.connection.on('connected', () => {
-                ablyStatusElement.textContent = `Connected to Ably! (Channel: ${CHANNEL_NAME})`;
+                ablyStatusElement.textContent = `Connected! (Channel: ${CHANNEL_NAME})`;
                 ablyStatusElement.style.color = "green";
-                console.log('Dashboard: Successfully connected to Ably!');
                 controlChannel = ably.channels.get(CHANNEL_NAME);
                 enableControls();
             });
-
             ably.connection.on('failed', (err) => {
-                ablyStatusElement.textContent = `Ably connection failed. Check console.`;
+                ablyStatusElement.textContent = `Ably connection failed.`;
                 ablyStatusElement.style.color = "red";
                 console.error('Dashboard: Ably connection failed:', err);
                 disableControls();
@@ -176,72 +205,79 @@
                 ablyStatusElement.style.color = "gray";
                 disableControls();
             });
-             ably.connection.on('disconnected', () => {
-                ablyStatusElement.textContent = "Ably disconnected. Will attempt to reconnect.";
+            ably.connection.on('disconnected', () => {
+                ablyStatusElement.textContent = "Ably disconnected.";
                 ablyStatusElement.style.color = "orange";
                 disableControls();
             });
         }
 
-        function publishAction(eventName, action) {
+        function publishAction(eventName, payload) { // Modified to accept full payload
             if (!controlChannel) {
                 updateStatus("Error: Not connected to Ably channel.");
                 ablyStatusElement.textContent = "Not connected. Please connect to Ably first.";
                 ablyStatusElement.style.color = "red";
                 return;
             }
-            controlChannel.publish(eventName, { action: action }, (err) => {
+            controlChannel.publish(eventName, payload, (err) => {
                 if (err) {
-                    updateStatus(`Error publishing ${eventName} - ${action}: ${err.message}`);
+                    updateStatus(`Error publishing ${eventName}: ${err.message}`);
                 } else {
-                    updateStatus(`Sent ${eventName}: ${action}`);
+                    updateStatus(`Sent ${eventName}: ${JSON.stringify(payload)}`);
                 }
             });
         }
         
         function disableControls() {
-            const buttons = document.querySelectorAll('.control-group button');
-            buttons.forEach(button => button.disabled = true);
-            // Ensure Breaking News buttons are also targeted if selector was too broad
-            showBreakingNewsButton.disabled = true;
-            hideBreakingNewsButton.disabled = true;
-            toggleBreakingNewsButton.disabled = true;
+            document.querySelectorAll('.control-group button, .control-group input[type="text"]').forEach(el => el.disabled = true);
+            // Exclude API key input and connect button from general disable
+            ablyApiKeyInput.disabled = false;
+            connectAblyButton.disabled = false;
         }
 
         function enableControls() {
-            const buttons = document.querySelectorAll('.control-group button');
-            buttons.forEach(button => button.disabled = false);
-             // Ensure Breaking News buttons are also targeted
-            showBreakingNewsButton.disabled = false;
-            hideBreakingNewsButton.disabled = false;
-            toggleBreakingNewsButton.disabled = false;
+             document.querySelectorAll('.control-group button, .control-group input[type="text"]').forEach(el => el.disabled = false);
         }
 
         connectAblyButton.addEventListener('click', connectToAbly);
 
-        // Text Overlay Listeners
-        showTextButton.addEventListener('click', () => publishAction('overlay-action', 'show'));
-        hideTextButton.addEventListener('click', () => publishAction('overlay-action', 'hide'));
-        toggleTextButton.addEventListener('click', () => publishAction('overlay-action', 'toggle'));
+        // Text Overlay
+        showTextButton.addEventListener('click', () => publishAction('overlay-action', { action: 'show' }));
+        hideTextButton.addEventListener('click', () => publishAction('overlay-action', { action: 'hide' }));
+        toggleTextButton.addEventListener('click', () => publishAction('overlay-action', { action: 'toggle' }));
 
-        // Logo Overlay Listeners
-        showLogoButton.addEventListener('click', () => publishAction('logo-action', 'show'));
-        hideLogoButton.addEventListener('click', () => publishAction('logo-action', 'hide'));
-        toggleLogoButton.addEventListener('click', () => publishAction('logo-action', 'toggle'));
+        // Logo Overlay
+        showLogoButton.addEventListener('click', () => publishAction('logo-action', { action: 'show' }));
+        hideLogoButton.addEventListener('click', () => publishAction('logo-action', { action: 'hide' }));
+        toggleLogoButton.addEventListener('click', () => publishAction('logo-action', { action: 'toggle' }));
 
-        // Breaking News Overlay Listeners
-        showBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', 'show'));
-        hideBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', 'hide'));
-        toggleBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', 'toggle'));
+        // Breaking News
+        showBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'show' }));
+        hideBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'hide' }));
+        toggleBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'toggle' }));
+
+        // Lower Third
+        showLowerThirdButton.addEventListener('click', () => {
+            const name = ltNameInput.value.trim();
+            const title = ltTitleInput.value.trim();
+            const affiliation = ltAffiliationInput.value.trim();
+            if (!name) { // At least name is required
+                alert("Please enter a name for the Lower Third.");
+                ltNameInput.focus();
+                return;
+            }
+            publishAction('lower-third-action', { 
+                action: 'show', 
+                name: name, 
+                title: title, 
+                affiliation: affiliation 
+            });
+        });
+        hideLowerThirdButton.addEventListener('click', () => publishAction('lower-third-action', { action: 'hide' }));
 
         disableControls();
-        ablyApiKeyInput.disabled = false;
-        connectAblyButton.disabled = false;
-
         const savedApiKey = localStorage.getItem('streamWeaverAblyApiKey');
-        if (savedApiKey) {
-            ablyApiKeyInput.value = savedApiKey;
-        }
+        if (savedApiKey) ablyApiKeyInput.value = savedApiKey;
         ablyApiKeyInput.addEventListener('input', () => {
             localStorage.setItem('streamWeaverAblyApiKey', ablyApiKeyInput.value);
         });
