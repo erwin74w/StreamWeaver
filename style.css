@@ -50,9 +50,9 @@ body {
 /* --- CSO Fullscreen Overlay Styles --- */
 #cso-overlay-container {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background-color: rgba(10, 20, 10, 0.95); /* Slightly different bg for distinction if needed */
+    background-color: rgba(10, 20, 10, 0.95); 
     display: flex; justify-content: center; align-items: center;
-    z-index: 9998; /* Slightly lower than BRB if they could somehow both be triggered, but JS prevents this */
+    z-index: 9998; 
     opacity: 0; visibility: hidden;
     transition: opacity 0.5s ease-in-out, visibility 0s 0.5s;
 }
@@ -61,5 +61,22 @@ body {
     transition: opacity 0.5s ease-in-out, visibility 0s 0s;
 }
 #cso-image {
+    max-width: 80%; max-height: 80%; object-fit: contain;
+}
+
+/* --- Outro Fullscreen Overlay Styles --- */
+#outro-overlay-container {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background-color: rgba(20, 10, 10, 0.95); /* Different bg for distinction */
+    display: flex; justify-content: center; align-items: center;
+    z-index: 9997; /* Lower than BRB and CSO */
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.5s ease-in-out, visibility 0s 0.5s;
+}
+#outro-overlay-container.show-outro { /* New class */
+    opacity: 1; visibility: visible;
+    transition: opacity 0.5s ease-in-out, visibility 0s 0s;
+}
+#outro-image {
     max-width: 80%; max-height: 80%; object-fit: contain;
 }
