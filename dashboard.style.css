@@ -38,22 +38,17 @@ textarea {
 
 /* --- Button Grouping and Alignment --- */
 .overlay-controls {
-    display: flex;         
-    align-items: center;   
+    display: flex;         /* Use flexbox for the entire group */
+    align-items: center;   /* Vertically align all direct children */
     flex-wrap: wrap;
-    /* Removed margin-bottom: 10px; from here, will be handled by specific cases or control-group */
-}
-/* Add some space below primary action line if followed by secondary actions */
-.control-group > .overlay-controls:first-of-type {
-    margin-bottom: 5px; /* Small space if there are secondary actions below */
+    margin-bottom: 10px;
 }
 
-
-.overlay-controls .status-light {
+.overlay-controls .status-light { /* Status light is now a direct child */
     width: 18px;      
     height: 18px;     
     border-radius: 50%; 
-    margin-right: 8px; 
+    margin-right: 8px; /* Space between light and first button */
     border: 1px solid rgba(0,0,0,0.2); 
     box-shadow: 0 0 3px rgba(0,0,0,0.2); 
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
@@ -67,18 +62,11 @@ textarea {
     border-radius: 4px; 
     cursor: pointer; 
     margin-right: 5px; 
+    /* margin-bottom is handled by .overlay-controls container */
     font-size: 16px; 
     transition: background-color 0.2s ease, opacity 0.2s ease;
+    /* Remove individual bottom margin as .overlay-controls handles group spacing */
     margin-bottom: 0; 
-}
-
-/* New class for secondary action button groups */
-.overlay-controls.secondary-actions {
-    margin-left: 26px; /* Indent secondary actions (width of light + its margin-right) */
-    margin-top: 0px; /* Reduce top margin if it's directly after another .overlay-controls */
-}
-.overlay-controls.secondary-actions button:first-child {
-    /* No additional margin needed here if they naturally sit next to each other */
 }
 
 
