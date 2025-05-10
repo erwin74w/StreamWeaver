@@ -1,27 +1,62 @@
+/* style.css (for Sleek Bottom Banner) */
 body {
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
+    font-family: Arial, sans-serif; /* Fallback font */
+    /* Ensure no overflow issues if the banner is positioned fixed */
+    overflow-x: hidden; 
 }
 
 #streamweaver-overlay {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.75);
-    color: white;
-    padding: 20px 40px;
-    border-radius: 10px;
-    display: none; /* Hidden by default */
-    text-align: center;
-    font-size: 24px;
-    z-index: 1000;
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
+    position: fixed; 
+    bottom: 10px;    /* Small margin from the absolute bottom edge */
+    left: 0;         /* Align to the left edge */
+    width: 100%;     /* Full width */
+    height: 80px;    /* Fixed height */
+    
+    background-color: rgba(0, 0, 0, 0.85); /* Darker semi-transparent black */
+    color: white;                           
+    
+    display: flex;          /* Use flexbox for easy vertical centering of text */
+    align-items: center;    /* Vertically center content (the p tag) */
+    justify-content: center;/* Horizontally center content (the p tag) */
+    padding: 0 40px;        /* Horizontal padding for the text inside the banner */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+
+    font-family: 'Open Sans', Arial, sans-serif; /* Clean sans-serif font */
+    font-size: 28px;        /* Specified font size */
+    text-align: center;     /* Center the text content within the p tag, if it wraps */
+    
+    border-top: 1px solid rgba(255,255,255,0.1); /* Subtle top border */
+    border-radius: 0;       /* Sharp corners, no rounding */
+    
+    z-index: 1000; 
+    
+    opacity: 0; /* Start fully transparent for smooth appearance */
+    /* 
+      Initial position:
+      Translate it down by its own height (80px) + its bottom offset (10px)
+      This ensures it starts completely off-screen below its final position.
+    */
+    transform: translateY(calc(80px + 10px)); 
+    
+    /* 
+      Transition for slide and fade:
+      - transform: for the slide-up/down motion
+      - opacity: for the fade-in/out
+      - cubic-bezier(0.215, 0.610, 0.355, 1.000) is a common ease-out-expo curve for smooth acceleration/deceleration
+    */
+    transition: transform 0.4s cubic-bezier(0.215, 0.610, 0.355, 1.000), 
+                opacity 0.4s cubic-bezier(0.215, 0.610, 0.355, 1.000);
 }
 
 #streamweaver-overlay.show {
-    display: block;
-    opacity: 1;
+    opacity: 1;     /* Make it fully visible */
+    transform: translateY(0); /* Slide it up to its final position (defined by 'bottom: 10px') */
+}
+
+/* Optional: Styles for the text element itself if needed, though flex centering handles most of it */
+#overlay-text {
+    margin: 0; /* Remove default paragraph margins */
+    padding: 0; /* Remove default paragraph padding */
 }
