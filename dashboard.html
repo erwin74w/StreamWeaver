@@ -12,16 +12,14 @@
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input[type="text"], input[type="password"], textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
         textarea { min-height: 60px; resize: vertical; }
-        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; margin-bottom: 10px; font-size: 16px; }
-        button:hover { background-color: #0056b3; }
+        button { color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; margin-bottom: 10px; font-size: 16px; }
+        button:hover { opacity: 0.9; }
+        button.primary { background-color: #007bff; }
         button.secondary { background-color: #6c757d; }
-        button.secondary:hover { background-color: #545b62; }
         button.alert { background-color: #dc3545; }
-        button.alert:hover { background-color: #c82333; }
         button.info { background-color: #17a2b8; }
-        button.info:hover { background-color: #117a8b; }
-        button.success { background-color: #28a745; } /* For Ticker */
-        button.success:hover { background-color: #1e7e34; }
+        button.success { background-color: #28a745; }
+        button.warning { background-color: #ffc107; color: black !important; } /* For BRB */
         .control-group { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
         .control-group:last-child { border-bottom: none; }
         .input-group { margin-bottom: 10px; }
@@ -35,16 +33,19 @@
         <div class="control-group">
             <label for="ablyApiKey">Ably API Key:</label>
             <input type="password" id="ablyApiKey" value="YOUR_ABLY_API_KEY_WAS_HERE" placeholder="Enter your Ably API Key">
-            <button id="connectAbly">Connect to Ably</button>
+            <button id="connectAbly" class="primary">Connect to Ably</button>
             <div id="ablyStatus" style="margin-top: 5px; font-style: italic;">Not connected.</div>
         </div>
 
         <div class="control-group">
+            <h2>Be Right Back (BRB) Overlay</h2>
+            <button id="showBRB" class="warning">Show BRB Screen</button>
+            <button id="hideBRB" class="secondary">Hide BRB Screen</button>
+        </div>
+
+        <div class="control-group">
             <h2>News Ticker Control</h2>
-            <div class="input-group">
-                <label for="tickerTextInput">Ticker Text:</label>
-                <textarea id="tickerTextInput" placeholder="Enter text to scroll in the ticker..."></textarea>
-            </div>
+            <div class="input-group"><label for="tickerTextInput">Ticker Text:</label><textarea id="tickerTextInput" placeholder="Enter text to scroll..."></textarea></div>
             <button id="showUpdateTicker" class="success">Show / Update Ticker</button>
             <button id="hideTicker" class="secondary">Hide Ticker</button>
         </div>
@@ -60,15 +61,15 @@
 
         <div class="control-group">
             <h2>Text Overlay (Subtitles)</h2>
-            <button id="showTextOverlay">Show Text</button>
-            <button id="hideTextOverlay">Hide Text</button>
+            <button id="showTextOverlay" class="primary">Show Text</button>
+            <button id="hideTextOverlay" class="primary">Hide Text</button>
             <button id="toggleTextOverlay" class="secondary">Toggle Text</button>
         </div>
 
         <div class="control-group">
             <h2>Logo Overlay</h2>
-            <button id="showLogo">Show Logo</button>
-            <button id="hideLogo">Hide Logo</button>
+            <button id="showLogo" class="primary">Show Logo</button>
+            <button id="hideLogo" class="primary">Hide Logo</button>
             <button id="toggleLogo" class="secondary">Toggle Logo</button>
         </div>
 
@@ -83,11 +84,14 @@
     </div>
 
     <script>
-        // ... (Ably connection logic, updateStatus, publishAction, disable/enableControls, and other button listeners from previous version)
         const ablyApiKeyInput = document.getElementById('ablyApiKey');
         const connectAblyButton = document.getElementById('connectAbly');
         const ablyStatusElement = document.getElementById('ablyStatus');
         const lastActionElement = document.getElementById('lastAction');
+
+        // BRB Buttons
+        const showBRBButton = document.getElementById('showBRB');
+        const hideBRBButton = document.getElementById('hideBRB');
 
         // Ticker Controls
         const tickerTextInput = document.getElementById('tickerTextInput');
@@ -100,19 +104,15 @@
         const ltAffiliationInput = document.getElementById('ltAffiliationInput');
         const showLowerThirdButton = document.getElementById('showLowerThird');
         const hideLowerThirdButton = document.getElementById('hideLowerThird');
-
         const showTextButton = document.getElementById('showTextOverlay');
         const hideTextButton = document.getElementById('hideTextOverlay');
         const toggleTextButton = document.getElementById('toggleTextOverlay');
-
         const showLogoButton = document.getElementById('showLogo');
         const hideLogoButton = document.getElementById('hideLogo');
         const toggleLogoButton = document.getElementById('toggleLogo');
-
         const showBreakingNewsButton = document.getElementById('showBreakingNews');
         const hideBreakingNewsButton = document.getElementById('hideBreakingNews');
         const toggleBreakingNewsButton = document.getElementById('toggleBreakingNews');
-
 
         const CHANNEL_NAME = 'streamweaver-control';
         let ably = null;
@@ -120,31 +120,22 @@
 
         function updateStatus(message) { console.log("Dashboard:", message); lastActionElement.textContent = message; }
 
-        function connectToAbly() {
+        function connectToAbly() { /* ... (Same as before) ... */ 
             const apiKey = ablyApiKeyInput.value;
-            if (!apiKey || apiKey === 'YOUR_ABLY_API_KEY_WAS_HERE' || apiKey.length < 10) {
-                ablyStatusElement.textContent = "Please enter a valid Ably API Key."; ablyStatusElement.style.color = "red"; return;
-            }
+            if (!apiKey || apiKey === 'YOUR_ABLY_API_KEY_WAS_HERE' || apiKey.length < 10) { ablyStatusElement.textContent = "Valid API Key required."; ablyStatusElement.style.color = "red"; return; }
             if (ably) ably.close();
             ablyStatusElement.textContent = "Connecting..."; ablyStatusElement.style.color = "orange";
             ably = new Ably.Realtime(apiKey);
-            ably.connection.on('connected', () => {
-                ablyStatusElement.textContent = `Connected! (Channel: ${CHANNEL_NAME})`; ablyStatusElement.style.color = "green";
-                controlChannel = ably.channels.get(CHANNEL_NAME); enableControls();
-            });
-            ably.connection.on('failed', (err) => {
-                ablyStatusElement.textContent = `Ably connection failed.`; ablyStatusElement.style.color = "red";
-                console.error('Dashboard: Ably fail:', err); disableControls();
-            });
+            ably.connection.on('connected', () => { ablyStatusElement.textContent = `Connected! (Channel: ${CHANNEL_NAME})`; ablyStatusElement.style.color = "green"; controlChannel = ably.channels.get(CHANNEL_NAME); enableControls(); });
+            ably.connection.on('failed', (err) => { ablyStatusElement.textContent = `Ably connection failed.`; ablyStatusElement.style.color = "red"; console.error('Dashboard Ably fail:', err); disableControls(); });
             ably.connection.on('closed', () => { ablyStatusElement.textContent = "Ably closed."; ablyStatusElement.style.color = "gray"; disableControls(); });
             ably.connection.on('disconnected', () => { ablyStatusElement.textContent = "Ably disconnected."; ablyStatusElement.style.color = "orange"; disableControls(); });
         }
 
-        function publishAction(eventName, payload) {
+        function publishAction(eventName, payload) { /* ... (Same as before) ... */
             if (!controlChannel) { updateStatus("Error: Not connected."); ablyStatusElement.textContent = "Not connected."; ablyStatusElement.style.color = "red"; return; }
             controlChannel.publish(eventName, payload, (err) => {
-                if (err) { updateStatus(`Error publishing ${eventName}: ${err.message}`); } 
-                else { updateStatus(`Sent ${eventName}: ${JSON.stringify(payload)}`); }
+                if (err) { updateStatus(`Error publishing ${eventName}: ${err.message}`); } else { updateStatus(`Sent ${eventName}: ${JSON.stringify(payload)}`); }
             });
         }
         
@@ -153,24 +144,14 @@
 
         connectAblyButton.addEventListener('click', connectToAbly);
 
-        // Ticker Listeners
-        showUpdateTickerButton.addEventListener('click', () => {
-            const text = tickerTextInput.value.trim();
-            if (!text) {
-                alert("Please enter text for the ticker.");
-                tickerTextInput.focus();
-                return;
-            }
-            publishAction('ticker-action', { action: 'show', text: text });
-        });
-        hideTickerButton.addEventListener('click', () => publishAction('ticker-action', { action: 'hide' }));
+        // BRB Listeners
+        showBRBButton.addEventListener('click', () => publishAction('brb-action', { action: 'show' }));
+        hideBRBButton.addEventListener('click', () => publishAction('brb-action', { action: 'hide' }));
 
-        // Other listeners (Lower Third, Text, Logo, Breaking News - same as before)
-        showLowerThirdButton.addEventListener('click', () => {
-            const name = ltNameInput.value.trim(); const title = ltTitleInput.value.trim(); const affiliation = ltAffiliationInput.value.trim();
-            if (!name) { alert("Name for Lower Third is required."); ltNameInput.focus(); return; }
-            publishAction('lower-third-action', { action: 'show', name: name, title: title, affiliation: affiliation });
-        });
+        // Other listeners (Ticker, Lower Third, Text, Logo, Breaking News - same as before)
+        showUpdateTickerButton.addEventListener('click', () => { const text = tickerTextInput.value.trim(); if (!text) { alert("Ticker text required."); tickerTextInput.focus(); return; } publishAction('ticker-action', { action: 'show', text: text }); });
+        hideTickerButton.addEventListener('click', () => publishAction('ticker-action', { action: 'hide' }));
+        showLowerThirdButton.addEventListener('click', () => { const name = ltNameInput.value.trim(); const title = ltTitleInput.value.trim(); const affiliation = ltAffiliationInput.value.trim(); if (!name) { alert("LT Name required."); ltNameInput.focus(); return; } publishAction('lower-third-action', { action: 'show', name: name, title: title, affiliation: affiliation }); });
         hideLowerThirdButton.addEventListener('click', () => publishAction('lower-third-action', { action: 'hide' }));
         showTextButton.addEventListener('click', () => publishAction('overlay-action', { action: 'show' }));
         hideTextButton.addEventListener('click', () => publishAction('overlay-action', { action: 'hide' }));
