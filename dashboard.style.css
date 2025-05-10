@@ -38,16 +38,21 @@ textarea {
 
 /* --- Button Grouping and Alignment --- */
 .overlay-controls {
-    display: flex; /* Use flexbox for the entire group of controls for an overlay */
-    align-items: center; /* Vertically align items in the middle */
-    flex-wrap: wrap; /* Allow buttons to wrap if space is tight, though unlikely here */
-    margin-bottom: 10px; /* Space below each control group */
+    display: flex;         /* Use flexbox for the entire group */
+    align-items: center;   /* Vertically align all direct children */
+    flex-wrap: wrap;
+    margin-bottom: 10px;
 }
 
-.overlay-controls .status-light-container {
-    display: inline-flex; 
-    align-items: center; 
-    margin-right: 10px; /* Space between light+show_button and next button */
+.overlay-controls .status-light { /* Status light is now a direct child */
+    width: 18px;      
+    height: 18px;     
+    border-radius: 50%; 
+    margin-right: 8px; /* Space between light and first button */
+    border: 1px solid rgba(0,0,0,0.2); 
+    box-shadow: 0 0 3px rgba(0,0,0,0.2); 
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    flex-shrink: 0; 
 }
 
 .overlay-controls button { 
@@ -57,17 +62,11 @@ textarea {
     border-radius: 4px; 
     cursor: pointer; 
     margin-right: 5px; 
-    /* margin-bottom is handled by .overlay-controls or .fullscreen-controls */
+    /* margin-bottom is handled by .overlay-controls container */
     font-size: 16px; 
-    transition: background-color 0.2s ease, opacity 0.2s ease; 
-}
-/* Remove bottom margin from buttons directly inside .overlay-controls 
-   if .overlay-controls itself provides the bottom margin for the group */
-.overlay-controls > button {
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    /* Remove individual bottom margin as .overlay-controls handles group spacing */
     margin-bottom: 0; 
-}
-.overlay-controls .status-light-container button {
-    margin-bottom: 0; /* Ensure button inside status-light-container also has no bottom margin */
 }
 
 
@@ -82,18 +81,7 @@ button.success { background-color: #28a745; }
 button.warning { background-color: #ffc107; color: black !important; } 
 button.dark-green { background-color: #00695c; }
 
-.status-light {
-    width: 18px;      
-    height: 18px;     
-    border-radius: 50%; 
-    margin-right: 8px; 
-    display: inline-block;
-    /* vertical-align: middle; /* Not strictly needed with flex align-items */
-    border: 1px solid rgba(0,0,0,0.2); 
-    box-shadow: 0 0 3px rgba(0,0,0,0.2); 
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    flex-shrink: 0; /* Prevent light from shrinking if space is tight */
-}
+/* Status light color states */
 .status-light.visible { background-color: #28a745; box-shadow: 0 0 6px #28a745; }
 .status-light.hidden { background-color: #dc3545; box-shadow: 0 0 6px #dc3545; }
 .status-light.error { background-color: #ffc107; box-shadow: 0 0 6px #ffc107; }
@@ -108,9 +96,6 @@ button.dark-green { background-color: #00695c; }
     border-bottom: none; 
 }
 
-/* Specific adjustments for fullscreen controls if needed, 
-   but the generic .overlay-controls should handle most cases.
-   The <br> might still be useful here for explicit line breaking. */
 .fullscreen-controls .overlay-controls {
     margin-bottom: 5px; 
 }
