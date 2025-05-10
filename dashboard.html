@@ -3,110 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamWeaver Dashboard (Ably)</title>
-    <!-- Include Ably Client Library -->
+    <title>StreamWeaver Dashboard</title>
     <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
-        .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 500px; margin: 20px auto; }
-        h1 { text-align: center; color: #333; }
-        .controls { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 20px; }
-        button {
-            padding: 12px 25px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            transition: background-color 0.3s ease;
-            width: 200px; /* Fixed width for buttons */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
         }
-        #showButton { background-color: #4CAF50; /* Green */ }
-        #showButton:hover { background-color: #45a049; }
-        #hideButton { background-color: #f44336; /* Red */ }
-        #hideButton:hover { background-color: #da190b; }
-        #toggleButton { background-color: #008CBA; /* Blue */ }
-        #toggleButton:hover { background-color: #007ba7; }
-        #status { text-align: center; margin-top: 25px; padding: 10px; border-radius: 4px; font-style: italic; color: #555; background-color: #e9e9e9;}
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #555;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button.secondary {
+            background-color: #6c757d;
+        }
+        button.secondary:hover {
+            background-color: #545b62;
+        }
+        .control-group {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .control-group:last-child {
+            border-bottom: none;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>StreamWeaver Control Dashboard (Ably)</h1>
-        <div id="status">Initializing Ably...</div>
-        <div class="controls">
-            <button id="showButton">Show Overlay</button>
-            <button id="hideButton">Hide Overlay</button>
-            <button id="toggleButton">Toggle Overlay</button>
+        <h1>StreamWeaver Control Dashboard</h1>
+
+        <div class="control-group">
+            <label for="ablyApiKey">Ably API Key:</label>
+            <input type="password" id="ablyApiKey" value="YOUR_ABLY_API_KEY_WAS_HERE" placeholder="Enter your Ably API Key">
+            <button id="connectAbly">Connect to Ably</button>
+            <div id="ablyStatus" style="margin-top: 5px; font-style: italic;">Not connected.</div>
+        </div>
+
+        <div class="control-group">
+            <h2>Text Overlay (Subtitles)</h2>
+            <button id="showTextOverlay">Show Text</button>
+            <button id="hideTextOverlay">Hide Text</button>
+            <button id="toggleTextOverlay" class="secondary">Toggle Text</button>
+        </div>
+
+        <div class="control-group">
+            <h2>Logo Overlay</h2>
+            <button id="showLogo">Show Logo</button>
+            <button id="hideLogo">Hide Logo</button>
+            <button id="toggleLogo" class="secondary">Toggle Logo</button>
+        </div>
+
+        <div id="status">
+            <strong>Last Action:</strong> <span id="lastAction">None</span>
         </div>
     </div>
 
     <script>
-        // dashboard.html inline script
-        document.addEventListener('DOMContentLoaded', () => {
-            const showButton = document.getElementById('showButton');
-            const hideButton = document.getElementById('hideButton');
-            const toggleButton = document.getElementById('toggleButton');
-            const statusElement = document.getElementById('status');
+        const ablyApiKeyInput = document.getElementById('ablyApiKey');
+        const connectAblyButton = document.getElementById('connectAbly');
+        const ablyStatusElement = document.getElementById('ablyStatus');
+        const lastActionElement = document.getElementById('lastAction');
 
-            // --- PASTE YOUR ABLY API KEY HERE (APPROXIMATELY ROW 42) ---
-            // --- Must be the SAME API Key as in script.js for index.html ---
-            const ABLY_API_KEY = 'PpmbHg.J6_8kg:qC-BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik'; 
-            const CHANNEL_NAME = 'streamweaver-control'; // Must be the same channel name
+        const showTextButton = document.getElementById('showTextOverlay');
+        const hideTextButton = document.getElementById('hideTextOverlay');
+        const toggleTextButton = document.getElementById('toggleTextOverlay');
 
-            if (ABLY_API_KEY === 'YOUR_ABLY_API_KEY_GOES_HERE' || !ABLY_API_KEY || ABLY_API_KEY.length < 10) {
-                const errorMsg = "Ably API Key is missing or invalid in dashboard.html! Please update it.";
-                alert(errorMsg);
-                console.error(errorMsg);
-                statusElement.textContent = "Ably API Key Missing!";
-                return; // Stop further execution
+        const showLogoButton = document.getElementById('showLogo');
+        const hideLogoButton = document.getElementById('hideLogo');
+        const toggleLogoButton = document.getElementById('toggleLogo');
+
+        const CHANNEL_NAME = 'streamweaver-control';
+        let ably = null;
+        let controlChannel = null;
+
+        function updateStatus(message) {
+            console.log("Dashboard:", message);
+            lastActionElement.textContent = message;
+        }
+
+        function connectToAbly() {
+            const apiKey = ablyApiKeyInput.value;
+            if (!apiKey || apiKey === 'YOUR_ABLY_API_KEY_WAS_HERE' || apiKey.length < 10) {
+                ablyStatusElement.textContent = "Please enter a valid Ably API Key.";
+                ablyStatusElement.style.color = "red";
+                console.warn("Dashboard: Ably API Key placeholder active or invalid.");
+                return;
             }
 
-            console.log('Dashboard: Initializing Ably...');
-            const ablyDashboard = new Ably.Realtime(ABLY_API_KEY);
-            const dashboardChannel = ablyDashboard.channels.get(CHANNEL_NAME);
+            if (ably) {
+                ably.close(); // Close existing connection if any
+            }
 
-            ablyDashboard.connection.on('connected', () => {
-                statusElement.textContent = 'Dashboard: Connected to Ably.';
+            ablyStatusElement.textContent = "Connecting to Ably...";
+            ablyStatusElement.style.color = "orange";
+
+            ably = new Ably.Realtime(apiKey);
+
+            ably.connection.on('connected', () => {
+                ablyStatusElement.textContent = `Connected to Ably! (Channel: ${CHANNEL_NAME})`;
+                ablyStatusElement.style.color = "green";
                 console.log('Dashboard: Successfully connected to Ably!');
+                controlChannel = ably.channels.get(CHANNEL_NAME);
+                enableControls();
             });
-            ablyDashboard.connection.on('failed', (err) => {
-                statusElement.textContent = 'Dashboard: Ably Connection Failed. Check console.';
+
+            ably.connection.on('failed', (err) => {
+                ablyStatusElement.textContent = `Ably connection failed. Check console.`;
+                ablyStatusElement.style.color = "red";
                 console.error('Dashboard: Ably connection failed:', err);
-            });
-            ablyDashboard.connection.on('disconnected', () => {
-                statusElement.textContent = 'Dashboard: Ably Disconnected. Reconnecting...';
-                console.warn('Dashboard: Ably disconnected. Will attempt to reconnect automatically.');
-            });
-            ablyDashboard.connection.on('suspended', () => {
-                statusElement.textContent = 'Dashboard: Ably Suspended. Reconnecting...';
-                console.warn('Dashboard: Ably suspended. Will attempt to reconnect automatically.');
+                disableControls();
             });
 
+            ably.connection.on('closed', () => {
+                ablyStatusElement.textContent = "Ably connection closed.";
+                ablyStatusElement.style.color = "gray";
+                disableControls();
+            });
+             ably.connection.on('disconnected', () => {
+                ablyStatusElement.textContent = "Ably disconnected. Will attempt to reconnect.";
+                ablyStatusElement.style.color = "orange";
+                disableControls();
+            });
+        }
 
-            function sendMessage(action) {
-                if (!ablyDashboard || ablyDashboard.connection.state !== 'connected') {
-                    statusElement.textContent = 'Dashboard: Not connected to Ably. Cannot send message.';
-                    console.warn('Dashboard: Not connected to Ably. Cannot send message.');
-                    return;
-                }
-                const messagePayload = { action: action };
-                // Publish to the 'overlay-action' EVENT NAME on our CHANNEL
-                dashboardChannel.publish('overlay-action', messagePayload, (err) => {
-                    if (err) {
-                        console.error(`Dashboard: Ably error publishing message for action '${action}':`, err);
-                        statusElement.textContent = `Dashboard: Error sending '${action}'. Check console.`;
-                    } else {
-                        console.log(`Dashboard: Ably message published for action '${action}':`, messagePayload);
-                        statusElement.textContent = `Dashboard: Sent '${action}' command via Ably.`;
-                    }
-                });
+        function publishAction(eventName, action) {
+            if (!controlChannel) {
+                updateStatus("Error: Not connected to Ably channel.");
+                ablyStatusElement.textContent = "Not connected. Please connect to Ably first.";
+                ablyStatusElement.style.color = "red";
+                return;
             }
+            controlChannel.publish(eventName, { action: action }, (err) => {
+                if (err) {
+                    updateStatus(`Error publishing ${eventName} - ${action}: ${err.message}`);
+                } else {
+                    updateStatus(`Sent ${eventName}: ${action}`);
+                }
+            });
+        }
+        
+        function disableControls() {
+            const buttons = document.querySelectorAll('.control-group button');
+            buttons.forEach(button => button.disabled = true);
+        }
 
-            showButton.addEventListener('click', () => sendMessage('show'));
-            hideButton.addEventListener('click', () => sendMessage('hide'));
-            toggleButton.addEventListener('click', () => sendMessage('toggle'));
+        function enableControls() {
+             const buttons = document.querySelectorAll('.control-group button');
+            buttons.forEach(button => button.disabled = false);
+        }
+
+
+        connectAblyButton.addEventListener('click', connectToAbly);
+
+        // Text Overlay Listeners
+        showTextButton.addEventListener('click', () => publishAction('overlay-action', 'show'));
+        hideTextButton.addEventListener('click', () => publishAction('overlay-action', 'hide'));
+        toggleTextButton.addEventListener('click', () => publishAction('overlay-action', 'toggle'));
+
+        // Logo Overlay Listeners
+        showLogoButton.addEventListener('click', () => publishAction('logo-action', 'show'));
+        hideLogoButton.addEventListener('click', () => publishAction('logo-action', 'hide'));
+        toggleLogoButton.addEventListener('click', () => publishAction('logo-action', 'toggle'));
+
+        // Initially disable controls until connected
+        disableControls();
+        // But enable API key input and connect button
+        ablyApiKeyInput.disabled = false;
+        connectAblyButton.disabled = false;
+
+        // Attempt to load API key from localStorage if previously saved
+        const savedApiKey = localStorage.getItem('streamWeaverAblyApiKey');
+        if (savedApiKey) {
+            ablyApiKeyInput.value = savedApiKey;
+        }
+        // Save API key on change
+        ablyApiKeyInput.addEventListener('input', () => {
+            localStorage.setItem('streamWeaverAblyApiKey', ablyApiKeyInput.value);
         });
+
     </script>
 </body>
 </html>
