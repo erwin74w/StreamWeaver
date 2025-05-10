@@ -1,54 +1,122 @@
 /* dashboard.style.css */
+:root {
+    --font-primary: Arial, sans-serif;
+    --color-background-body: #f4f4f4;
+    --color-background-container: white;
+    --color-text-primary: #333;
+    --color-text-headings: #555;
+    --color-border-light: #ddd;
+    --color-border-medium: #eee;
+    --color-shadow: rgba(0,0,0,0.1);
+    --color-status-footer-bg: #e9ecef;
+
+    --color-button-primary-bg: #007bff;
+    --color-button-secondary-bg: #6c757d;
+    --color-button-alert-bg: #dc3545;
+    --color-button-info-bg: #17a2b8;
+    --color-button-success-bg: #28a745;
+    --color-button-warning-bg: #ffc107;
+    --color-button-dark-green-bg: #00695c;
+    --color-button-text: white;
+    --color-button-warning-text: black;
+
+    --color-status-visible: var(--color-button-success-bg);
+    --color-status-hidden: var(--color-button-alert-bg);
+    --color-status-error: var(--color-button-warning-bg);
+    --color-status-unknown: var(--color-button-secondary-bg);
+
+    --color-success: green;
+    --color-error: red;
+    --color-error-text: var(--color-error); /* For general log errors */
+    --color-warning-dark: orange; /* For Ably connecting/disconnected */
+    --color-neutral-dark: gray; /* For Ably closed */
+
+    --border-radius-small: 4px;
+    --border-radius-medium: 8px;
+    --padding-small: 10px;
+    --padding-medium: 15px;
+    --padding-large: 20px;
+    --margin-small: 5px;
+    --margin-medium: 10px;
+    --margin-large: 20px;
+    --margin-xl: 25px;
+}
+
 body { 
-    font-family: Arial, sans-serif; 
-    margin: 20px; 
-    background-color: #f4f4f4; 
-    color: #333; 
+    font-family: var(--font-primary); 
+    margin: var(--margin-large); 
+    background-color: var(--color-background-body); 
+    color: var(--color-text-primary); 
 }
 .container { 
-    background: white; 
-    padding: 20px; 
-    border-radius: 8px; 
-    box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+    background: var(--color-background-container); 
+    padding: var(--padding-large); 
+    border-radius: var(--border-radius-medium); 
+    box-shadow: 0 0 10px var(--color-shadow); 
     max-width: 700px; 
     margin: auto; 
 }
-h1, h2 { 
-    color: #555; 
+h1 { 
+    color: var(--color-text-headings); 
+    text-align: center;
+    margin-bottom: var(--margin-xl);
 }
+
+/* --- Fieldset and Legend Styling --- */
+fieldset.control-group {
+    border: 1px solid var(--color-border-medium);
+    padding: var(--padding-medium) var(--padding-large) var(--padding-large); /* top, right/left, bottom */
+    margin-bottom: var(--margin-xl);
+    border-radius: var(--border-radius-small);
+}
+fieldset.control-group:last-of-type { /* Use last-of-type for better semantic matching */
+    border-bottom: 1px solid var(--color-border-medium); /* Keep border for consistency or remove if preferred */
+}
+legend {
+    font-weight: bold;
+    color: var(--color-text-headings);
+    padding: 0 var(--padding-small);
+    font-size: 1.1em;
+    margin-left: var(--margin-small); /* Adjust as needed */
+}
+
+
 label { 
     display: block; 
-    margin-bottom: 5px; 
+    margin-bottom: var(--margin-small); 
     font-weight: bold; 
 }
 input[type="text"], 
 input[type="password"], 
 textarea { 
     width: 100%; 
-    padding: 10px; 
-    margin-bottom: 10px; 
-    border: 1px solid #ddd; 
-    border-radius: 4px; 
+    padding: var(--padding-small); 
+    margin-bottom: var(--margin-medium); 
+    border: 1px solid var(--color-border-light); 
+    border-radius: var(--border-radius-small); 
     box-sizing: border-box; 
 }
 textarea { 
     min-height: 60px; 
     resize: vertical; 
 }
+.status-message { /* For Ably Status */
+    margin-top: var(--margin-small);
+    font-style: italic;
+}
 
 /* --- Button Grouping and Alignment --- */
 .overlay-controls {
-    display: flex;         /* Use flexbox for the entire group */
-    align-items: center;   /* Vertically align all direct children */
-    /* flex-wrap: wrap; /* REMOVE or comment out this line */
-    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--margin-medium);
 }
 
-.overlay-controls .status-light { /* Status light is now a direct child */
+.overlay-controls .status-light {
     width: 18px;      
     height: 18px;     
     border-radius: 50%; 
-    margin-right: 8px; /* Space between light and first button */
+    margin-right: 8px;
     border: 1px solid rgba(0,0,0,0.2); 
     box-shadow: 0 0 3px rgba(0,0,0,0.2); 
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
@@ -56,59 +124,59 @@ textarea {
 }
 
 .overlay-controls button { 
-    color: white; 
-    padding: 10px 15px; 
+    color: var(--color-button-text); 
+    padding: var(--padding-small) var(--padding-medium); 
     border: none; 
-    border-radius: 4px; 
+    border-radius: var(--border-radius-small); 
     cursor: pointer; 
-    margin-right: 5px; 
-    font-size: 16px; 
+    margin-right: var(--margin-small); 
+    font-size: 1em; /* Relative font size */
     transition: background-color 0.2s ease, opacity 0.2s ease;
-    margin-bottom: 0; /* Handled by .overlay-controls parent */
-    white-space: nowrap; /* Prevent button text from wrapping, helps keep button width consistent */
+    margin-bottom: 0; 
+    white-space: nowrap;
+}
+.overlay-controls button:last-child {
+    margin-right: 0;
 }
 
 
 button:hover { 
     opacity: 0.9; 
 }
-button.primary { background-color: #007bff; }
-button.secondary { background-color: #6c757d; }
-button.alert { background-color: #dc3545; }
-button.info { background-color: #17a2b8; }
-button.success { background-color: #28a745; }
-button.warning { background-color: #ffc107; color: black !important; } 
-button.dark-green { background-color: #00695c; }
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+button.primary { background-color: var(--color-button-primary-bg); }
+button.secondary { background-color: var(--color-button-secondary-bg); }
+button.alert { background-color: var(--color-button-alert-bg); }
+button.info { background-color: var(--color-button-info-bg); }
+button.success { background-color: var(--color-button-success-bg); }
+button.warning { background-color: var(--color-button-warning-bg); color: var(--color-button-warning-text) !important; } 
+button.dark-green { background-color: var(--color-button-dark-green-bg); }
 
 /* Status light color states */
-.status-light.visible { background-color: #28a745; box-shadow: 0 0 6px #28a745; }
-.status-light.hidden { background-color: #dc3545; box-shadow: 0 0 6px #dc3545; }
-.status-light.error { background-color: #ffc107; box-shadow: 0 0 6px #ffc107; }
-.status-light.unknown { background-color: #6c757d; }
+.status-light.visible { background-color: var(--color-status-visible); box-shadow: 0 0 6px var(--color-status-visible); }
+.status-light.hidden { background-color: var(--color-status-hidden); box-shadow: 0 0 6px var(--color-status-hidden); }
+.status-light.error { background-color: var(--color-status-error); box-shadow: 0 0 6px var(--color-status-error); }
+.status-light.unknown { background-color: var(--color-status-unknown); }
 
-.control-group { 
-    margin-bottom: 25px; 
-    padding-bottom: 20px; 
-    border-bottom: 1px solid #eee; 
-}
-.control-group:last-child { 
-    border-bottom: none; 
-}
 
-/* For Fullscreen Modes, if you still want them on separate lines, 
-   you'd keep the <br> in the HTML or style them differently.
-   This change makes ALL .overlay-controls try to be single-line. */
 .fullscreen-controls .overlay-controls {
-    margin-bottom: 5px; 
+    margin-bottom: var(--margin-small); 
 }
 
 
 .input-group { 
-    margin-bottom: 10px; 
+    margin-bottom: var(--margin-medium); 
 }
 #status-footer-log { 
-    margin-top: 20px; 
-    padding: 10px; 
-    background-color: #e9ecef; 
-    border-radius: 4px; 
+    margin-top: var(--margin-large); 
+    padding: var(--padding-small); 
+    background-color: var(--color-status-footer-bg); 
+    border-radius: var(--border-radius-small); 
+    line-height: 1.5;
+}
+#status-footer-log strong {
+    color: var(--color-text-headings);
 }
