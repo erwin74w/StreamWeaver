@@ -30,15 +30,8 @@
                 <button id="showCSO" class="dark-green">Show CSO Screen</button>
                 <button id="hideCSO" class="secondary">Hide CSO Screen</button>
             </div>
-            <!-- NEW Outro Controls -->
-            <div class="overlay-controls">
-                <span id="outro-status-light" class="status-light unknown"></span>
-                <button id="showOutro" class="info">Show Outro Screen</button> <!-- Choose a button color e.g., info -->
-                <button id="hideOutro" class="secondary">Hide Outro Screen</button>
-            </div>
         </div>
 
-        <!-- ... (Rest of the control groups: Ticker, Lower Third, etc. - remain the same) ... -->
         <div class="control-group">
             <h2>News Ticker Control</h2>
             <div class="input-group"><label for="tickerTextInput">Ticker Text:</label><textarea id="tickerTextInput" placeholder="Enter text to scroll..."></textarea></div>
@@ -48,6 +41,7 @@
                 <button id="hideTicker" class="secondary">Hide Ticker</button>
             </div>
         </div>
+
         <div class="control-group">
             <h2>Lower Third Control</h2>
             <div class="input-group"><label for="ltNameInput">Name:</label><input type="text" id="ltNameInput" placeholder="e.g., Dr. Jane Smith"></div>
@@ -59,6 +53,7 @@
                 <button id="hideLowerThird" class="secondary">Hide Lower Third</button>
             </div>
         </div>
+
         <div class="control-group">
             <h2>Text Overlay (Subtitles)</h2>
             <div class="overlay-controls">
@@ -68,6 +63,7 @@
                 <button id="toggleTextOverlay" class="secondary">Toggle Text</button>
             </div>
         </div>
+
         <div class="control-group">
             <h2>Logo Overlay</h2>
             <div class="overlay-controls">
@@ -77,6 +73,7 @@
                 <button id="toggleLogo" class="secondary">Toggle Logo</button>
             </div>
         </div>
+
         <div class="control-group">
             <h2>Breaking News Overlay</h2>
             <div class="overlay-controls">
@@ -86,7 +83,6 @@
                 <button id="toggleBreakingNews" class="secondary alert">Toggle Breaking News</button>
             </div>
         </div>
-
 
         <div id="status-footer-log"><strong>Last Action Sent:</strong> <span id="lastAction">None</span> <br> <strong>General Log:</strong> <span id="generalLog">Awaiting connection...</span></div>
     </div>
