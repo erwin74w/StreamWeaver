@@ -7,7 +7,7 @@
     <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet"> {/* Added 600 weight */}
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -24,6 +24,15 @@
     <!-- Text Overlay (Subtitles) -->
     <div id="streamweaver-overlay">
         <p id="overlay-text">Loading overlay content...</p>
+    </div>
+
+    <!-- Lower Third Overlay -->
+    <div id="lower-third-container">
+        <div class="lower-third-content">
+            <span id="lt-name" class="lt-name-class">Full Name</span>
+            <span id="lt-title" class="lt-title-class">Title / Function</span>
+            <span id="lt-affiliation" class="lt-affiliation-class">Affiliation / Company</span>
+        </div>
     </div>
 
     <script src="script.js"></script>
