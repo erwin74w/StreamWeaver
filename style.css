@@ -3,27 +3,25 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Open Sans', Arial, sans-serif; /* Default font */
-    background-color: transparent; /* Ensure body is transparent for overlay use */
-    overflow: hidden; /* Prevent scrollbars from appearing due to off-screen elements */
+    background-color: transparent; 
+    overflow: hidden; 
 }
 
 /* --- Logo Styles --- */
 #logo-container {
     position: fixed;
-    top: 20px;    /* Adjust as needed */
-    left: 20px;   /* Adjust as needed */
-    z-index: 1010; /* Higher than text overlay if they could overlap */
+    top: 20px;   
+    left: 20px;  
+    z-index: 1010; 
     opacity: 0;
-    visibility: hidden; /* Hidden by default, use visibility for better performance with opacity */
+    visibility: hidden; 
     transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
 }
-
 #streamweaver-logo-img {
     display: block;
-    max-width: 150px; /* Adjust as needed, prevents oversized logo */
-    height: auto;     /* Maintain aspect ratio */
+    max-width: 150px; 
+    height: auto;     
 }
-
 #logo-container.show-logo {
     opacity: 1;
     visibility: visible;
@@ -32,60 +30,50 @@ body {
 /* --- Breaking News Styles --- */
 #breaking-news-container {
     position: fixed;
-    top: 20px;    /* Adjust as needed */
-    right: 20px;  /* Position to the top-right */
-    z-index: 1009; /* Z-index can be adjusted based on desired layering with other elements */
+    top: 20px;   
+    right: 20px; 
+    z-index: 1009; 
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
 }
-
 #breaking-news-img {
     display: block;
-    max-width: 250px; /* Adjust max-width as needed for the breaking news image */
-    max-height: 150px; /* Optional: constrain height as well */
+    max-width: 250px; 
+    max-height: 150px; 
     height: auto;
-    border: 3px solid red; /* Optional: a border to make it stand out */
-    box-shadow: 0px 0px 10px rgba(0,0,0,0.5); /* Optional: a subtle shadow */
+    border: 3px solid red; 
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.5); 
 }
-
 #breaking-news-container.show-breaking-news {
     opacity: 1;
     visibility: visible;
 }
 
-
 /* --- Text Overlay (Subtitles) Styles --- */
 #streamweaver-overlay {
     position: fixed; 
-    bottom: 30px;    /* Position from the bottom, adjust as desired for subtitles */
+    bottom: 30px;    
     left: 50%;       
-    transform: translateX(-50%); /* Center horizontally */
-    width: 80%;      /* Subtitles don't usually span 100% width, adjust as needed */
-    max-width: 900px; /* Max width for wider screens */
-    
-    background-color: transparent; /* OVERLAY BACKGROUND IS TRANSPARENT */
-    
+    transform: translateX(-50%); 
+    width: 80%;      
+    max-width: 900px; 
+    background-color: transparent; 
     display: flex;          
     align-items: center;    
     justify-content: center;
     padding: 10px 20px;     
     box-sizing: border-box; 
-
     z-index: 1000; 
-    
     opacity: 0; 
     transform: translateX(-50%) translateY(50px); 
-    
     transition: transform 0.4s cubic-bezier(0.215, 0.610, 0.355, 1.000), 
                 opacity 0.4s cubic-bezier(0.215, 0.610, 0.355, 1.000);
 }
-
 #streamweaver-overlay.show {
     opacity: 1;     
     transform: translateX(-50%) translateY(0); 
 }
-
 #overlay-text {
     margin: 0; 
     padding: 0; 
@@ -101,4 +89,60 @@ body {
         -1px 1px 0px rgba(0,0,0,0.8),
         0px 0px 8px rgba(0,0,0,0.9); 
     line-height: 1.3; 
+}
+
+/* --- Lower Third Styles --- */
+#lower-third-container {
+    position: fixed;
+    bottom: 60px; /* Adjust vertical position as needed */
+    left: 30px;   /* Adjust horizontal position as needed */
+    z-index: 1005;
+    opacity: 0;
+    transform: translateX(-100%); /* Start off-screen to the left */
+    visibility: hidden;
+    transition: transform 0.5s cubic-bezier(0.215, 0.610, 0.355, 1.000), 
+                opacity 0.4s ease-in-out,
+                visibility 0s 0.5s; /* Delay visibility until transform is done for hiding */
+    color: white;
+    font-family: 'Open Sans', Arial, sans-serif;
+}
+
+#lower-third-container.show-lower-third {
+    opacity: 1;
+    transform: translateX(0); /* Slide in to position */
+    visibility: visible;
+    transition: transform 0.5s cubic-bezier(0.215, 0.610, 0.355, 1.000), 
+                opacity 0.4s ease-in-out,
+                visibility 0s 0s; /* Make visible immediately when showing */
+}
+
+.lower-third-content {
+    background-color: rgba(20, 30, 100, 0.85); /* Example: A dark blue, semi-transparent */
+    padding: 15px 25px;
+    border-radius: 0 5px 5px 0; /* Slightly rounded on the right side */
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Align text to the start (left) */
+    min-width: 300px; /* Minimum width to ensure it looks decent */
+}
+
+.lt-name-class {
+    font-size: 28px;
+    font-weight: 700; /* Bold */
+    margin-bottom: 4px;
+    color: #ffffff;
+}
+
+.lt-title-class {
+    font-size: 20px;
+    font-weight: 600; /* Semi-bold */
+    margin-bottom: 2px;
+    color: #e0e0e0; /* Slightly lighter color for title */
+}
+
+.lt-affiliation-class {
+    font-size: 18px;
+    font-weight: 400; /* Regular */
+    color: #c0c0c0; /* Even lighter for affiliation */
 }
