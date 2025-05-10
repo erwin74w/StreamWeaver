@@ -19,7 +19,7 @@
         button.alert { background-color: #dc3545; }
         button.info { background-color: #17a2b8; }
         button.success { background-color: #28a745; }
-        button.warning { background-color: #ffc107; color: black !important; } /* For BRB/CSO */
+        button.warning { background-color: #ffc107; color: black !important; } /* For BRB */
         .control-group { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
         .control-group:last-child { border-bottom: none; }
         .input-group { margin-bottom: 10px; }
@@ -38,12 +38,9 @@
         </div>
 
         <div class="control-group">
-            <h2>Fullscreen Scene Control</h2>
-            <button id="showCSO" class="warning">Show "Coming Soon"</button>
-            <button id="hideCSO" class="secondary">Hide "Coming Soon"</button>
-            <br>
-            <button id="showBRB" class="warning">Show "Be Right Back"</button>
-            <button id="hideBRB" class="secondary">Hide "Be Right Back"</button>
+            <h2>Be Right Back (BRB) Overlay</h2>
+            <button id="showBRB" class="warning">Show BRB Screen</button>
+            <button id="hideBRB" class="secondary">Hide BRB Screen</button>
         </div>
 
         <div class="control-group">
@@ -92,9 +89,7 @@
         const ablyStatusElement = document.getElementById('ablyStatus');
         const lastActionElement = document.getElementById('lastAction');
 
-        // Fullscreen Scene Buttons
-        const showCSOButton = document.getElementById('showCSO');
-        const hideCSOButton = document.getElementById('hideCSO');
+        // BRB Buttons
         const showBRBButton = document.getElementById('showBRB');
         const hideBRBButton = document.getElementById('hideBRB');
 
@@ -103,8 +98,8 @@
         const showUpdateTickerButton = document.getElementById('showUpdateTicker');
         const hideTickerButton = document.getElementById('hideTicker');
 
-        // Other element getters
-        const ltNameInput = document.getElementById('ltNameInput'); /* ... and so on for other inputs/buttons ... */
+        // Other element getters (ltNameInput, etc.)
+        const ltNameInput = document.getElementById('ltNameInput');
         const ltTitleInput = document.getElementById('ltTitleInput');
         const ltAffiliationInput = document.getElementById('ltAffiliationInput');
         const showLowerThirdButton = document.getElementById('showLowerThird');
@@ -120,9 +115,11 @@
         const toggleBreakingNewsButton = document.getElementById('toggleBreakingNews');
 
         const CHANNEL_NAME = 'streamweaver-control';
-        let ably = null; let controlChannel = null;
+        let ably = null;
+        let controlChannel = null;
 
         function updateStatus(message) { console.log("Dashboard:", message); lastActionElement.textContent = message; }
+
         function connectToAbly() { /* ... (Same as before) ... */ 
             const apiKey = ablyApiKeyInput.value;
             if (!apiKey || apiKey === 'YOUR_ABLY_API_KEY_WAS_HERE' || apiKey.length < 10) { ablyStatusElement.textContent = "Valid API Key required."; ablyStatusElement.style.color = "red"; return; }
@@ -134,24 +131,24 @@
             ably.connection.on('closed', () => { ablyStatusElement.textContent = "Ably closed."; ablyStatusElement.style.color = "gray"; disableControls(); });
             ably.connection.on('disconnected', () => { ablyStatusElement.textContent = "Ably disconnected."; ablyStatusElement.style.color = "orange"; disableControls(); });
         }
+
         function publishAction(eventName, payload) { /* ... (Same as before) ... */
             if (!controlChannel) { updateStatus("Error: Not connected."); ablyStatusElement.textContent = "Not connected."; ablyStatusElement.style.color = "red"; return; }
             controlChannel.publish(eventName, payload, (err) => {
                 if (err) { updateStatus(`Error publishing ${eventName}: ${err.message}`); } else { updateStatus(`Sent ${eventName}: ${JSON.stringify(payload)}`); }
             });
         }
+        
         function disableControls() { document.querySelectorAll('.control-group button, .control-group input, .control-group textarea').forEach(el => el.disabled = true); ablyApiKeyInput.disabled = false; connectAblyButton.disabled = false;}
         function enableControls() { document.querySelectorAll('.control-group button, .control-group input, .control-group textarea').forEach(el => el.disabled = false); }
 
         connectAblyButton.addEventListener('click', connectToAbly);
 
-        // Fullscreen Scene Listeners
-        showCSOButton.addEventListener('click', () => publishAction('cso-action', { action: 'show' }));
-        hideCSOButton.addEventListener('click', () => publishAction('cso-action', { action: 'hide' }));
+        // BRB Listeners
         showBRBButton.addEventListener('click', () => publishAction('brb-action', { action: 'show' }));
         hideBRBButton.addEventListener('click', () => publishAction('brb-action', { action: 'hide' }));
-        
-        // Other Listeners (same as before)
+
+        // Other listeners (Ticker, Lower Third, Text, Logo, Breaking News - same as before)
         showUpdateTickerButton.addEventListener('click', () => { const text = tickerTextInput.value.trim(); if (!text) { alert("Ticker text required."); tickerTextInput.focus(); return; } publishAction('ticker-action', { action: 'show', text: text }); });
         hideTickerButton.addEventListener('click', () => publishAction('ticker-action', { action: 'hide' }));
         showLowerThirdButton.addEventListener('click', () => { const name = ltNameInput.value.trim(); const title = ltTitleInput.value.trim(); const affiliation = ltAffiliationInput.value.trim(); if (!name) { alert("LT Name required."); ltNameInput.focus(); return; } publishAction('lower-third-action', { action: 'show', name: name, title: title, affiliation: affiliation }); });
