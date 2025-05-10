@@ -18,7 +18,7 @@ export class BRBOverlay {
     }
 
     show() {
-        if (this.containerElement) {
+        if (this.containerElement && !this.isVisible) { // Only act if not already shown
             if (typeof this._onShowCallback === 'function') {
                 this._onShowCallback();
             }
@@ -28,13 +28,22 @@ export class BRBOverlay {
     }
 
     hide() {
-        if (this.containerElement) {
+        if (this.containerElement && this.isVisible) { // Only act if not already hidden
             this.containerElement.classList.remove('show-brb');
             logger.log("HIDDEN");
             if (typeof this._onHideCallback === 'function') {
-                this._onHideCallback();
+                this._onHideCallback(); // This callback might still be relevant for cleanup
             }
         }
+    }
+
+    toggle() {
+        if (this.isVisible) {
+            this.hide();
+        } else {
+            this.show();
+        }
+        // Logger messages are handled by show/hide
     }
 
     get isVisible() {
