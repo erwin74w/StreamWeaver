@@ -42,8 +42,9 @@ body {
     max-width: 250px; 
     max-height: 150px; 
     height: auto;
-    border: 3px solid red; 
-    box-shadow: 0px 0px 10px rgba(0,0,0,0.5); 
+    /* border: 3px solid red; */ /* REMOVED THIS LINE */
+    border: none; /* Explicitly set to no border */
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.5); /* Optional: a subtle shadow, keep or remove as desired */
 }
 #breaking-news-container.show-breaking-news {
     opacity: 1;
@@ -94,55 +95,50 @@ body {
 /* --- Lower Third Styles --- */
 #lower-third-container {
     position: fixed;
-    bottom: 60px; /* Adjust vertical position as needed */
-    left: 30px;   /* Adjust horizontal position as needed */
+    bottom: 60px; 
+    left: 30px;   
     z-index: 1005;
     opacity: 0;
-    transform: translateX(-100%); /* Start off-screen to the left */
+    transform: translateX(-100%); 
     visibility: hidden;
     transition: transform 0.5s cubic-bezier(0.215, 0.610, 0.355, 1.000), 
                 opacity 0.4s ease-in-out,
-                visibility 0s 0.5s; /* Delay visibility until transform is done for hiding */
+                visibility 0s 0.5s; 
     color: white;
     font-family: 'Open Sans', Arial, sans-serif;
 }
-
 #lower-third-container.show-lower-third {
     opacity: 1;
-    transform: translateX(0); /* Slide in to position */
+    transform: translateX(0); 
     visibility: visible;
     transition: transform 0.5s cubic-bezier(0.215, 0.610, 0.355, 1.000), 
                 opacity 0.4s ease-in-out,
-                visibility 0s 0s; /* Make visible immediately when showing */
+                visibility 0s 0s; 
 }
-
 .lower-third-content {
-    background-color: rgba(20, 30, 100, 0.85); /* Example: A dark blue, semi-transparent */
+    background-color: rgba(20, 30, 100, 0.85); 
     padding: 15px 25px;
-    border-radius: 0 5px 5px 0; /* Slightly rounded on the right side */
+    border-radius: 0 5px 5px 0; 
     box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* Align text to the start (left) */
-    min-width: 300px; /* Minimum width to ensure it looks decent */
+    align-items: flex-start; 
+    min-width: 300px; 
 }
-
 .lt-name-class {
     font-size: 28px;
-    font-weight: 700; /* Bold */
+    font-weight: 700; 
     margin-bottom: 4px;
     color: #ffffff;
 }
-
 .lt-title-class {
     font-size: 20px;
-    font-weight: 600; /* Semi-bold */
+    font-weight: 600; 
     margin-bottom: 2px;
-    color: #e0e0e0; /* Slightly lighter color for title */
+    color: #e0e0e0; 
 }
-
 .lt-affiliation-class {
     font-size: 18px;
-    font-weight: 400; /* Regular */
-    color: #c0c0c0; /* Even lighter for affiliation */
+    font-weight: 400; 
+    color: #c0c0c0; 
 }
