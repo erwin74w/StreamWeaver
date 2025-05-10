@@ -7,10 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Logo Overlay Elements ---
     const logoContainerElement = document.getElementById('logo-container');
 
+    // --- Breaking News Overlay Elements ---
+    const breakingNewsContainerElement = document.getElementById('breaking-news-container');
+
     const ABLY_API_KEY = 'PpmbHg.J6_8kg:qC-BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik'; // Note: API Key will be managed by user
     const CHANNEL_NAME = 'streamweaver-control'; 
 
-    // Basic error check for API key (user will manage the actual key)
     if (ABLY_API_KEY === 'YOUR_ABLY_API_KEY_WAS_HERE' || !ABLY_API_KEY || ABLY_API_KEY.length < 10) {
         console.warn("Ably API Key placeholder active. User needs to insert actual key.");
     }
@@ -54,9 +56,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 4. Ably Client Setup ---
+    // --- 4. Breaking News Overlay Show/Hide Functions ---
+    function showBreakingNews() {
+        if (breakingNewsContainerElement) {
+            breakingNewsContainerElement.classList.add('show-breaking-news');
+            console.log("Breaking News Overlay: SHOWN");
+        }
+    }
+
+    function hideBreakingNews() {
+        if (breakingNewsContainerElement) {
+            breakingNewsContainerElement.classList.remove('show-breaking-news');
+            console.log("Breaking News Overlay: HIDDEN");
+        }
+    }
+
+    // --- 5. Ably Client Setup ---
     console.log('Overlay: Initializing Ably...');
-    const ablyOverlay = new Ably.Realtime(ABLY_API_KEY); // User manages this key
+    const ablyOverlay = new Ably.Realtime(ABLY_API_KEY);
     const controlChannel = ablyOverlay.channels.get(CHANNEL_NAME);
 
     ablyOverlay.connection.on('connected', () => console.log('Overlay: Successfully connected to Ably!'));
@@ -90,6 +107,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     logoContainerElement.classList.contains('show-logo') ? hideLogo() : showLogo();
                     break;
                 default: console.warn('Overlay: Unknown action received for logo:', actionData.action);
+            }
+        }
+    });
+
+    // Subscribe to actions for the BREAKING NEWS OVERLAY
+    controlChannel.subscribe('breaking-news-action', (message) => {
+        console.log('Overlay: Received Ably message on "breaking-news-action":', message.data);
+        const actionData = message.data;
+        if (actionData?.action) {
+            switch (actionData.action.toLowerCase()) {
+                case 'show': showBreakingNews(); break;
+                case 'hide': hideBreakingNews(); break;
+                case 'toggle':
+                    breakingNewsContainerElement.classList.contains('show-breaking-news') ? hideBreakingNews() : showBreakingNews();
+                    break;
+                default: console.warn('Overlay: Unknown action received for breaking news:', actionData.action);
             }
         }
     });
