@@ -1,11 +1,20 @@
 // js/overlays/BRBOverlay.js
+import { DEBUG } from '../ably-config.js';
+
+const LOG_PREFIX = "[BRBOverlay]";
+const logger = {
+    log: (...args) => DEBUG && console.log(LOG_PREFIX, ...args),
+    error: (...args) => console.error(LOG_PREFIX, ...args),
+};
+
 export class BRBOverlay {
     constructor(elementId, onShowCallback, onHideCallback) {
         this.containerElement = document.getElementById(elementId);
-        this._onShowCallback = onShowCallback; // Manager provides this to hide other overlays
-        this._onHideCallback = onHideCallback; // Manager provides this for post-hide actions
+        this._onShowCallback = onShowCallback; 
+        this._onHideCallback = onHideCallback; 
 
-        if (!this.containerElement) console.error(`BRBOverlay: Element with ID '${elementId}' not found.`);
+        if (!this.containerElement) logger.error(`Element with ID '${elementId}' not found.`);
+        logger.log("BRBOverlay instance created.");
     }
 
     show() {
@@ -14,14 +23,14 @@ export class BRBOverlay {
                 this._onShowCallback();
             }
             this.containerElement.classList.add('show-brb');
-            console.log("BRB Overlay: SHOWN");
+            logger.log("SHOWN");
         }
     }
 
     hide() {
         if (this.containerElement) {
             this.containerElement.classList.remove('show-brb');
-            console.log("BRB Overlay: HIDDEN");
+            logger.log("HIDDEN");
             if (typeof this._onHideCallback === 'function') {
                 this._onHideCallback();
             }
