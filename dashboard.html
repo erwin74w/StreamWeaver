@@ -6,85 +6,26 @@
     <title>StreamWeaver Dashboard</title>
     <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            max-width: 700px;
-            margin: auto;
-        }
-        h1, h2 {
-            color: #555;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 10px;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        button.secondary {
-            background-color: #6c757d;
-        }
-        button.secondary:hover {
-            background-color: #545b62;
-        }
-        button.alert { 
-            background-color: #dc3545;
-        }
-        button.alert:hover {
-            background-color: #c82333;
-        }
-        button.info { /* Style for Lower Third buttons */
-            background-color: #17a2b8;
-        }
-        button.info:hover {
-            background-color: #117a8b;
-        }
-        .control-group {
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        .control-group:last-child {
-            border-bottom: none;
-        }
-        .input-group {
-            margin-bottom: 10px;
-        }
-        #status {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #e9ecef;
-            border-radius: 4px;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 700px; margin: auto; }
+        h1, h2 { color: #555; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"], textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        textarea { min-height: 60px; resize: vertical; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; margin-bottom: 10px; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        button.secondary { background-color: #6c757d; }
+        button.secondary:hover { background-color: #545b62; }
+        button.alert { background-color: #dc3545; }
+        button.alert:hover { background-color: #c82333; }
+        button.info { background-color: #17a2b8; }
+        button.info:hover { background-color: #117a8b; }
+        button.success { background-color: #28a745; } /* For Ticker */
+        button.success:hover { background-color: #1e7e34; }
+        .control-group { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .control-group:last-child { border-bottom: none; }
+        .input-group { margin-bottom: 10px; }
+        #status { margin-top: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -99,19 +40,20 @@
         </div>
 
         <div class="control-group">
+            <h2>News Ticker Control</h2>
+            <div class="input-group">
+                <label for="tickerTextInput">Ticker Text:</label>
+                <textarea id="tickerTextInput" placeholder="Enter text to scroll in the ticker..."></textarea>
+            </div>
+            <button id="showUpdateTicker" class="success">Show / Update Ticker</button>
+            <button id="hideTicker" class="secondary">Hide Ticker</button>
+        </div>
+
+        <div class="control-group">
             <h2>Lower Third Control</h2>
-            <div class="input-group">
-                <label for="ltNameInput">Name:</label>
-                <input type="text" id="ltNameInput" placeholder="e.g., Dr. Jane Smith">
-            </div>
-            <div class="input-group">
-                <label for="ltTitleInput">Title / Function:</label>
-                <input type="text" id="ltTitleInput" placeholder="e.g., Chief Medical Officer">
-            </div>
-            <div class="input-group">
-                <label for="ltAffiliationInput">Affiliation / Company:</label>
-                <input type="text" id="ltAffiliationInput" placeholder="e.g., City Hospital">
-            </div>
+            <div class="input-group"><label for="ltNameInput">Name:</label><input type="text" id="ltNameInput" placeholder="e.g., Dr. Jane Smith"></div>
+            <div class="input-group"><label for="ltTitleInput">Title:</label><input type="text" id="ltTitleInput" placeholder="e.g., Chief Medical Officer"></div>
+            <div class="input-group"><label for="ltAffiliationInput">Affiliation:</label><input type="text" id="ltAffiliationInput" placeholder="e.g., City Hospital"></div>
             <button id="showLowerThird" class="info">Show Lower Third</button>
             <button id="hideLowerThird" class="secondary">Hide Lower Third</button>
         </div>
@@ -137,16 +79,27 @@
             <button id="toggleBreakingNews" class="secondary alert">Toggle Breaking News</button>
         </div>
 
-        <div id="status">
-            <strong>Last Action:</strong> <span id="lastAction">None</span>
-        </div>
+        <div id="status"><strong>Last Action:</strong> <span id="lastAction">None</span></div>
     </div>
 
     <script>
+        // ... (Ably connection logic, updateStatus, publishAction, disable/enableControls, and other button listeners from previous version)
         const ablyApiKeyInput = document.getElementById('ablyApiKey');
         const connectAblyButton = document.getElementById('connectAbly');
         const ablyStatusElement = document.getElementById('ablyStatus');
         const lastActionElement = document.getElementById('lastAction');
+
+        // Ticker Controls
+        const tickerTextInput = document.getElementById('tickerTextInput');
+        const showUpdateTickerButton = document.getElementById('showUpdateTicker');
+        const hideTickerButton = document.getElementById('hideTicker');
+
+        // Other element getters (ltNameInput, etc.)
+        const ltNameInput = document.getElementById('ltNameInput');
+        const ltTitleInput = document.getElementById('ltTitleInput');
+        const ltAffiliationInput = document.getElementById('ltAffiliationInput');
+        const showLowerThirdButton = document.getElementById('showLowerThird');
+        const hideLowerThirdButton = document.getElementById('hideLowerThird');
 
         const showTextButton = document.getElementById('showTextOverlay');
         const hideTextButton = document.getElementById('hideTextOverlay');
@@ -160,127 +113,79 @@
         const hideBreakingNewsButton = document.getElementById('hideBreakingNews');
         const toggleBreakingNewsButton = document.getElementById('toggleBreakingNews');
 
-        // Lower Third Inputs and Buttons
-        const ltNameInput = document.getElementById('ltNameInput');
-        const ltTitleInput = document.getElementById('ltTitleInput');
-        const ltAffiliationInput = document.getElementById('ltAffiliationInput');
-        const showLowerThirdButton = document.getElementById('showLowerThird');
-        const hideLowerThirdButton = document.getElementById('hideLowerThird');
 
         const CHANNEL_NAME = 'streamweaver-control';
         let ably = null;
         let controlChannel = null;
 
-        function updateStatus(message) {
-            console.log("Dashboard:", message);
-            lastActionElement.textContent = message;
-        }
+        function updateStatus(message) { console.log("Dashboard:", message); lastActionElement.textContent = message; }
 
         function connectToAbly() {
-            // (Same as before)
             const apiKey = ablyApiKeyInput.value;
             if (!apiKey || apiKey === 'YOUR_ABLY_API_KEY_WAS_HERE' || apiKey.length < 10) {
-                ablyStatusElement.textContent = "Please enter a valid Ably API Key.";
-                ablyStatusElement.style.color = "red";
-                return;
+                ablyStatusElement.textContent = "Please enter a valid Ably API Key."; ablyStatusElement.style.color = "red"; return;
             }
             if (ably) ably.close();
-            ablyStatusElement.textContent = "Connecting to Ably...";
-            ablyStatusElement.style.color = "orange";
+            ablyStatusElement.textContent = "Connecting..."; ablyStatusElement.style.color = "orange";
             ably = new Ably.Realtime(apiKey);
             ably.connection.on('connected', () => {
-                ablyStatusElement.textContent = `Connected! (Channel: ${CHANNEL_NAME})`;
-                ablyStatusElement.style.color = "green";
-                controlChannel = ably.channels.get(CHANNEL_NAME);
-                enableControls();
+                ablyStatusElement.textContent = `Connected! (Channel: ${CHANNEL_NAME})`; ablyStatusElement.style.color = "green";
+                controlChannel = ably.channels.get(CHANNEL_NAME); enableControls();
             });
             ably.connection.on('failed', (err) => {
-                ablyStatusElement.textContent = `Ably connection failed.`;
-                ablyStatusElement.style.color = "red";
-                console.error('Dashboard: Ably connection failed:', err);
-                disableControls();
+                ablyStatusElement.textContent = `Ably connection failed.`; ablyStatusElement.style.color = "red";
+                console.error('Dashboard: Ably fail:', err); disableControls();
             });
-            ably.connection.on('closed', () => {
-                ablyStatusElement.textContent = "Ably connection closed.";
-                ablyStatusElement.style.color = "gray";
-                disableControls();
-            });
-            ably.connection.on('disconnected', () => {
-                ablyStatusElement.textContent = "Ably disconnected.";
-                ablyStatusElement.style.color = "orange";
-                disableControls();
-            });
+            ably.connection.on('closed', () => { ablyStatusElement.textContent = "Ably closed."; ablyStatusElement.style.color = "gray"; disableControls(); });
+            ably.connection.on('disconnected', () => { ablyStatusElement.textContent = "Ably disconnected."; ablyStatusElement.style.color = "orange"; disableControls(); });
         }
 
-        function publishAction(eventName, payload) { // Modified to accept full payload
-            if (!controlChannel) {
-                updateStatus("Error: Not connected to Ably channel.");
-                ablyStatusElement.textContent = "Not connected. Please connect to Ably first.";
-                ablyStatusElement.style.color = "red";
-                return;
-            }
+        function publishAction(eventName, payload) {
+            if (!controlChannel) { updateStatus("Error: Not connected."); ablyStatusElement.textContent = "Not connected."; ablyStatusElement.style.color = "red"; return; }
             controlChannel.publish(eventName, payload, (err) => {
-                if (err) {
-                    updateStatus(`Error publishing ${eventName}: ${err.message}`);
-                } else {
-                    updateStatus(`Sent ${eventName}: ${JSON.stringify(payload)}`);
-                }
+                if (err) { updateStatus(`Error publishing ${eventName}: ${err.message}`); } 
+                else { updateStatus(`Sent ${eventName}: ${JSON.stringify(payload)}`); }
             });
         }
         
-        function disableControls() {
-            document.querySelectorAll('.control-group button, .control-group input[type="text"]').forEach(el => el.disabled = true);
-            // Exclude API key input and connect button from general disable
-            ablyApiKeyInput.disabled = false;
-            connectAblyButton.disabled = false;
-        }
-
-        function enableControls() {
-             document.querySelectorAll('.control-group button, .control-group input[type="text"]').forEach(el => el.disabled = false);
-        }
+        function disableControls() { document.querySelectorAll('.control-group button, .control-group input, .control-group textarea').forEach(el => el.disabled = true); ablyApiKeyInput.disabled = false; connectAblyButton.disabled = false;}
+        function enableControls() { document.querySelectorAll('.control-group button, .control-group input, .control-group textarea').forEach(el => el.disabled = false); }
 
         connectAblyButton.addEventListener('click', connectToAbly);
 
-        // Text Overlay
+        // Ticker Listeners
+        showUpdateTickerButton.addEventListener('click', () => {
+            const text = tickerTextInput.value.trim();
+            if (!text) {
+                alert("Please enter text for the ticker.");
+                tickerTextInput.focus();
+                return;
+            }
+            publishAction('ticker-action', { action: 'show', text: text });
+        });
+        hideTickerButton.addEventListener('click', () => publishAction('ticker-action', { action: 'hide' }));
+
+        // Other listeners (Lower Third, Text, Logo, Breaking News - same as before)
+        showLowerThirdButton.addEventListener('click', () => {
+            const name = ltNameInput.value.trim(); const title = ltTitleInput.value.trim(); const affiliation = ltAffiliationInput.value.trim();
+            if (!name) { alert("Name for Lower Third is required."); ltNameInput.focus(); return; }
+            publishAction('lower-third-action', { action: 'show', name: name, title: title, affiliation: affiliation });
+        });
+        hideLowerThirdButton.addEventListener('click', () => publishAction('lower-third-action', { action: 'hide' }));
         showTextButton.addEventListener('click', () => publishAction('overlay-action', { action: 'show' }));
         hideTextButton.addEventListener('click', () => publishAction('overlay-action', { action: 'hide' }));
         toggleTextButton.addEventListener('click', () => publishAction('overlay-action', { action: 'toggle' }));
-
-        // Logo Overlay
         showLogoButton.addEventListener('click', () => publishAction('logo-action', { action: 'show' }));
         hideLogoButton.addEventListener('click', () => publishAction('logo-action', { action: 'hide' }));
         toggleLogoButton.addEventListener('click', () => publishAction('logo-action', { action: 'toggle' }));
-
-        // Breaking News
         showBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'show' }));
         hideBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'hide' }));
         toggleBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'toggle' }));
 
-        // Lower Third
-        showLowerThirdButton.addEventListener('click', () => {
-            const name = ltNameInput.value.trim();
-            const title = ltTitleInput.value.trim();
-            const affiliation = ltAffiliationInput.value.trim();
-            if (!name) { // At least name is required
-                alert("Please enter a name for the Lower Third.");
-                ltNameInput.focus();
-                return;
-            }
-            publishAction('lower-third-action', { 
-                action: 'show', 
-                name: name, 
-                title: title, 
-                affiliation: affiliation 
-            });
-        });
-        hideLowerThirdButton.addEventListener('click', () => publishAction('lower-third-action', { action: 'hide' }));
-
         disableControls();
         const savedApiKey = localStorage.getItem('streamWeaverAblyApiKey');
         if (savedApiKey) ablyApiKeyInput.value = savedApiKey;
-        ablyApiKeyInput.addEventListener('input', () => {
-            localStorage.setItem('streamWeaverAblyApiKey', ablyApiKeyInput.value);
-        });
+        ablyApiKeyInput.addEventListener('input', () => { localStorage.setItem('streamWeaverAblyApiKey', ablyApiKeyInput.value); });
     </script>
 </body>
 </html>
