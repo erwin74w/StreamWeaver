@@ -19,9 +19,11 @@
         button.alert { background-color: #dc3545; }
         button.info { background-color: #17a2b8; }
         button.success { background-color: #28a745; }
-        button.warning { background-color: #ffc107; color: black !important; } /* For BRB */
+        button.warning { background-color: #ffc107; color: black !important; } 
+        button.dark-green { background-color: #00695c; } /* For CSO */
         .control-group { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
         .control-group:last-child { border-bottom: none; }
+        .fullscreen-controls button { margin-bottom: 5px; } /* Tighter spacing for grouped fullscreen buttons */
         .input-group { margin-bottom: 10px; }
         #status { margin-top: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; }
     </style>
@@ -37,10 +39,13 @@
             <div id="ablyStatus" style="margin-top: 5px; font-style: italic;">Not connected.</div>
         </div>
 
-        <div class="control-group">
-            <h2>Be Right Back (BRB) Overlay</h2>
+        <div class="control-group fullscreen-controls">
+            <h2>Fullscreen Modes</h2>
             <button id="showBRB" class="warning">Show BRB Screen</button>
             <button id="hideBRB" class="secondary">Hide BRB Screen</button>
+            <br>
+            <button id="showCSO" class="dark-green">Show CSO Screen</button>
+            <button id="hideCSO" class="secondary">Hide CSO Screen</button>
         </div>
 
         <div class="control-group">
@@ -92,13 +97,14 @@
         // BRB Buttons
         const showBRBButton = document.getElementById('showBRB');
         const hideBRBButton = document.getElementById('hideBRB');
+        // CSO Buttons
+        const showCSOButton = document.getElementById('showCSO');
+        const hideCSOButton = document.getElementById('hideCSO');
 
-        // Ticker Controls
+        // Other element getters (Ticker, LT, etc.)
         const tickerTextInput = document.getElementById('tickerTextInput');
         const showUpdateTickerButton = document.getElementById('showUpdateTicker');
         const hideTickerButton = document.getElementById('hideTicker');
-
-        // Other element getters (ltNameInput, etc.)
         const ltNameInput = document.getElementById('ltNameInput');
         const ltTitleInput = document.getElementById('ltTitleInput');
         const ltAffiliationInput = document.getElementById('ltAffiliationInput');
@@ -119,7 +125,6 @@
         let controlChannel = null;
 
         function updateStatus(message) { console.log("Dashboard:", message); lastActionElement.textContent = message; }
-
         function connectToAbly() { /* ... (Same as before) ... */ 
             const apiKey = ablyApiKeyInput.value;
             if (!apiKey || apiKey === 'YOUR_ABLY_API_KEY_WAS_HERE' || apiKey.length < 10) { ablyStatusElement.textContent = "Valid API Key required."; ablyStatusElement.style.color = "red"; return; }
@@ -131,14 +136,12 @@
             ably.connection.on('closed', () => { ablyStatusElement.textContent = "Ably closed."; ablyStatusElement.style.color = "gray"; disableControls(); });
             ably.connection.on('disconnected', () => { ablyStatusElement.textContent = "Ably disconnected."; ablyStatusElement.style.color = "orange"; disableControls(); });
         }
-
         function publishAction(eventName, payload) { /* ... (Same as before) ... */
             if (!controlChannel) { updateStatus("Error: Not connected."); ablyStatusElement.textContent = "Not connected."; ablyStatusElement.style.color = "red"; return; }
             controlChannel.publish(eventName, payload, (err) => {
                 if (err) { updateStatus(`Error publishing ${eventName}: ${err.message}`); } else { updateStatus(`Sent ${eventName}: ${JSON.stringify(payload)}`); }
             });
         }
-        
         function disableControls() { document.querySelectorAll('.control-group button, .control-group input, .control-group textarea').forEach(el => el.disabled = true); ablyApiKeyInput.disabled = false; connectAblyButton.disabled = false;}
         function enableControls() { document.querySelectorAll('.control-group button, .control-group input, .control-group textarea').forEach(el => el.disabled = false); }
 
@@ -147,6 +150,9 @@
         // BRB Listeners
         showBRBButton.addEventListener('click', () => publishAction('brb-action', { action: 'show' }));
         hideBRBButton.addEventListener('click', () => publishAction('brb-action', { action: 'hide' }));
+        // CSO Listeners
+        showCSOButton.addEventListener('click', () => publishAction('cso-action', { action: 'show' }));
+        hideCSOButton.addEventListener('click', () => publishAction('cso-action', { action: 'hide' }));
 
         // Other listeners (Ticker, Lower Third, Text, Logo, Breaking News - same as before)
         showUpdateTickerButton.addEventListener('click', () => { const text = tickerTextInput.value.trim(); if (!text) { alert("Ticker text required."); tickerTextInput.focus(); return; } publishAction('ticker-action', { action: 'show', text: text }); });
