@@ -1,6 +1,6 @@
 // script.js (for index.html - Overlay Logic)
 document.addEventListener('DOMContentLoaded', () => {
-    // ... (previous element getters for logo, breaking news, text overlay, lower third)
+    // --- Element Getters ---
     const overlayElement = document.getElementById('streamweaver-overlay');
     const overlayTextElement = document.getElementById('overlay-text');
     const logoContainerElement = document.getElementById('logo-container');
@@ -9,12 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const ltNameElement = document.getElementById('lt-name');
     const ltTitleElement = document.getElementById('lt-title');
     const ltAffiliationElement = document.getElementById('lt-affiliation');
-
-    // --- Ticker Overlay Elements ---
     const tickerContainerElement = document.getElementById('ticker-container');
     const tickerContentWrapperElement = document.getElementById('ticker-content-wrapper');
     const tickerTextSpanElement = document.getElementById('ticker-text-span');
+    const brbOverlayContainerElement = document.getElementById('brb-overlay-container'); // New
 
+    // --- Ably Configuration ---
     const ABLY_API_KEY = 'PpmbHg.J6_8kg:qC-BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik'; 
     const CHANNEL_NAME = 'streamweaver-control'; 
 
@@ -22,88 +22,98 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn("Ably API Key placeholder active. User needs to insert actual key.");
     }
 
-    // --- 1. Fetch initial overlay data (for text overlay) ---
-    // ... (same as before)
-    fetch('./overlay_data.json') 
-        .then(response => response.ok ? response.json() : Promise.reject(`HTTP error! status: ${response.status}`))
-        .then(data => overlayTextElement.textContent = data?.message || "Overlay Ready")
-        .catch(error => {
-            console.error("Error fetching overlay_data.json:", error);
-            if(overlayTextElement) overlayTextElement.textContent = "Error loading data";
-        });
+    // --- Overlay Control Functions ---
 
-    // --- Show/Hide Functions for other overlays (same as before) ---
-    function showTextOverlay() { /* ... */ }
-    function hideTextOverlay() { /* ... */ }
-    function showLogo() { /* ... */ }
-    function hideLogo() { /* ... */ }
-    function showBreakingNews() { /* ... */ }
-    function hideBreakingNews() { /* ... */ }
-    function showLowerThird(data) { /* ... (as before) */ }
-    function hideLowerThird() { /* ... (as before) */ }
-    if (overlayElement) { // Quick check for text overlay functions
-        showTextOverlay = function() { overlayElement.classList.add('show'); console.log("Text Overlay: SHOWN"); };
-        hideTextOverlay = function() { overlayElement.classList.remove('show'); console.log("Text Overlay: HIDDEN"); };
-    }
-    if (logoContainerElement) {
-        showLogo = function() { logoContainerElement.classList.add('show-logo'); console.log("Logo Overlay: SHOWN"); };
-        hideLogo = function() { logoContainerElement.classList.remove('show-logo'); console.log("Logo Overlay: HIDDEN"); };
-    }
-    if (breakingNewsContainerElement) {
-        showBreakingNews = function() { breakingNewsContainerElement.classList.add('show-breaking-news'); console.log("BN Overlay: SHOWN"); };
-        hideBreakingNews = function() { breakingNewsContainerElement.classList.remove('show-breaking-news'); console.log("BN Overlay: HIDDEN"); };
-    }
-    if (lowerThirdContainerElement && ltNameElement && ltTitleElement && ltAffiliationElement) {
-        showLowerThird = function(data) {
+    // Text Overlay (Subtitles)
+    function showTextOverlay() { if (overlayElement) { overlayElement.classList.add('show'); console.log("Text Overlay: SHOWN"); } }
+    function hideTextOverlay() { if (overlayElement) { overlayElement.classList.remove('show'); console.log("Text Overlay: HIDDEN"); } }
+
+    // Logo
+    function showLogo() { if (logoContainerElement) { logoContainerElement.classList.add('show-logo'); console.log("Logo: SHOWN"); } }
+    function hideLogo() { if (logoContainerElement) { logoContainerElement.classList.remove('show-logo'); console.log("Logo: HIDDEN"); } }
+
+    // Breaking News
+    function showBreakingNews() { if (breakingNewsContainerElement) { breakingNewsContainerElement.classList.add('show-breaking-news'); console.log("BN: SHOWN"); } }
+    function hideBreakingNews() { if (breakingNewsContainerElement) { breakingNewsContainerElement.classList.remove('show-breaking-news'); console.log("BN: HIDDEN"); } }
+
+    // Lower Third
+    function showLowerThird(data) {
+        if (lowerThirdContainerElement && ltNameElement && ltTitleElement && ltAffiliationElement) {
             ltNameElement.textContent = data.name || ""; ltTitleElement.textContent = data.title || ""; ltAffiliationElement.textContent = data.affiliation || "";
             ltNameElement.style.display = data.name ? 'block' : 'none'; ltTitleElement.style.display = data.title ? 'block' : 'none'; ltAffiliationElement.style.display = data.affiliation ? 'block' : 'none';
             lowerThirdContainerElement.classList.add('show-lower-third'); console.log("LT: SHOWN", data);
-        };
-        hideLowerThird = function() { lowerThirdContainerElement.classList.remove('show-lower-third'); console.log("LT: HIDDEN"); };
+        }
     }
+    function hideLowerThird() { if (lowerThirdContainerElement) { lowerThirdContainerElement.classList.remove('show-lower-third'); console.log("LT: HIDDEN"); } }
 
-
-    // --- Ticker Show/Hide/Update Functions ---
+    // Ticker
     function showTicker(data) {
         if (tickerContainerElement && tickerTextSpanElement && tickerContentWrapperElement) {
             const newText = data.text || "StreamWeaver Ticker Active...";
-            // Add extra non-breaking spaces to create a visual gap for continuous scroll illusion
             const trailingSpaces = " \u00A0\u00A0\u00A0\u00A0\u00A0\u00A0 "; 
             tickerTextSpanElement.textContent = newText + trailingSpaces;
-
-            // Restart animation: remove class, trigger reflow, add class back
-            // This ensures the animation recalculates based on new text width if it changed
-            // and makes it start from the beginning.
             if (tickerContentWrapperElement.classList.contains('animate')) {
                 tickerContentWrapperElement.classList.remove('animate');
-                void tickerContentWrapperElement.offsetWidth; // Force reflow to reset animation
+                void tickerContentWrapperElement.offsetWidth; // Force reflow
             }
             tickerContentWrapperElement.classList.add('animate');
-            
             tickerContainerElement.classList.add('show-ticker');
             console.log("Ticker: SHOWN/UPDATED with text:", newText);
         }
     }
-
     function hideTicker() {
         if (tickerContainerElement && tickerContentWrapperElement) {
             tickerContainerElement.classList.remove('show-ticker');
-            tickerContentWrapperElement.classList.remove('animate'); // Stop animation
+            tickerContentWrapperElement.classList.remove('animate');
             console.log("Ticker: HIDDEN");
         }
     }
 
+    // --- BRB Overlay and Master Control Logic ---
+    function hideAllOtherOverlays() {
+        hideTextOverlay();
+        hideLogo();
+        hideBreakingNews();
+        hideLowerThird();
+        hideTicker();
+        console.log("All other overlays commanded to hide.");
+    }
+
+    function showBRB() {
+        hideAllOtherOverlays(); // Ensure other overlays are hidden first
+        if (brbOverlayContainerElement) {
+            brbOverlayContainerElement.classList.add('show-brb');
+            console.log("BRB Overlay: SHOWN");
+        }
+    }
+
+    function hideBRB() {
+        if (brbOverlayContainerElement) {
+            brbOverlayContainerElement.classList.remove('show-brb');
+            console.log("BRB Overlay: HIDDEN");
+        }
+        // Per requirement, when BRB is hidden, all other overlays should *remain* hidden.
+        hideAllOtherOverlays(); 
+    }
+    
+    // --- Initial Data Fetch (for Subtitles) ---
+    fetch('./overlay_data.json') 
+        .then(response => response.ok ? response.json() : Promise.reject(`HTTP error! status: ${response.status}`))
+        .then(data => { if (overlayTextElement) overlayTextElement.textContent = data?.message || "Overlay Ready"; })
+        .catch(error => {
+            console.error("Error fetching overlay_data.json:", error);
+            if (overlayTextElement) overlayTextElement.textContent = "Error loading data";
+        });
+
     // --- Ably Client Setup ---
-    // ... (same as before, ensure it's defined once)
     console.log('Overlay: Initializing Ably...');
     const ablyOverlay = new Ably.Realtime(ABLY_API_KEY);
     const controlChannel = ablyOverlay.channels.get(CHANNEL_NAME);
 
     ablyOverlay.connection.on('connected', () => console.log('Overlay: Successfully connected to Ably!'));
     ablyOverlay.connection.on('failed', (err) => console.error('Overlay: Ably connection failed:', err));
-    
-    // --- Ably Subscriptions (including new Ticker subscription) ---
-    // ... (subscriptions for overlay-action, logo-action, breaking-news-action, lower-third-action as before)
+
+    // --- Ably Subscriptions ---
     controlChannel.subscribe('overlay-action', (message) => {
         const d = message.data; if(d?.action){ switch(d.action.toLowerCase()){ case 'show': showTextOverlay(); break; case 'hide': hideTextOverlay(); break; case 'toggle': overlayElement.classList.contains('show')?hideTextOverlay():showTextOverlay(); break; }}
     });
@@ -116,21 +126,22 @@ document.addEventListener('DOMContentLoaded', () => {
     controlChannel.subscribe('lower-third-action', (message) => {
         const d = message.data; if(d?.action){ switch(d.action.toLowerCase()){ case 'show': showLowerThird(d); break; case 'hide': hideLowerThird(); break; }}
     });
-
-
-    // Subscribe to actions for the TICKER
     controlChannel.subscribe('ticker-action', (message) => {
-        console.log('Overlay: Received Ably message on "ticker-action":', message.data);
+        const d = message.data; if(d?.action){ switch(d.action.toLowerCase()){ case 'show': showTicker(d); break; case 'hide': hideTicker(); break; }}
+    });
+    // New subscription for BRB
+    controlChannel.subscribe('brb-action', (message) => {
+        console.log('Overlay: Received Ably message on "brb-action":', message.data);
         const actionData = message.data;
         if (actionData?.action) {
             switch (actionData.action.toLowerCase()) {
-                case 'show': // This will also handle updates if ticker is already shown
-                    showTicker(actionData); // Expects actionData.text
+                case 'show':
+                    showBRB();
                     break;
                 case 'hide':
-                    hideTicker();
+                    hideBRB();
                     break;
-                default: console.warn('Overlay: Unknown action received for ticker:', actionData.action);
+                default: console.warn('Overlay: Unknown action received for BRB:', actionData.action);
             }
         }
     });
