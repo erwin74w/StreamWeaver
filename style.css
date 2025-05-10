@@ -2,143 +2,124 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: 'Open Sans', Arial, sans-serif; /* Default font */
+    font-family: 'Open Sans', Arial, sans-serif;
     background-color: transparent; 
     overflow: hidden; 
 }
 
 /* --- Logo Styles --- */
 #logo-container {
-    position: fixed;
-    top: 20px;   
-    left: 20px;  
-    z-index: 1010; 
-    opacity: 0;
-    visibility: hidden; 
+    position: fixed; top: 20px; left: 20px; z-index: 1010; 
+    opacity: 0; visibility: hidden; 
     transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
 }
-#streamweaver-logo-img {
-    display: block;
-    max-width: 150px; 
-    height: auto;     
-}
-#logo-container.show-logo {
-    opacity: 1;
-    visibility: visible;
-}
+#streamweaver-logo-img { display: block; max-width: 150px; height: auto; }
+#logo-container.show-logo { opacity: 1; visibility: visible; }
 
 /* --- Breaking News Styles --- */
 #breaking-news-container {
-    position: fixed;
-    top: 20px;   
-    right: 20px; 
-    z-index: 1009; 
-    opacity: 0;
-    visibility: hidden;
+    position: fixed; top: 20px; right: 20px; z-index: 1009; 
+    opacity: 0; visibility: hidden;
     transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
 }
 #breaking-news-img {
-    display: block;
-    max-width: 250px; 
-    max-height: 150px; 
-    height: auto;
-    /* border: 3px solid red; */ /* REMOVED THIS LINE */
-    border: none; /* Explicitly set to no border */
-    box-shadow: 0px 0px 10px rgba(0,0,0,0.5); /* Optional: a subtle shadow, keep or remove as desired */
+    display: block; max-width: 250px; max-height: 150px; height: auto;
+    border: none; 
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.5); 
 }
-#breaking-news-container.show-breaking-news {
-    opacity: 1;
-    visibility: visible;
-}
+#breaking-news-container.show-breaking-news { opacity: 1; visibility: visible; }
 
 /* --- Text Overlay (Subtitles) Styles --- */
 #streamweaver-overlay {
-    position: fixed; 
-    bottom: 30px;    
-    left: 50%;       
-    transform: translateX(-50%); 
-    width: 80%;      
-    max-width: 900px; 
-    background-color: transparent; 
-    display: flex;          
-    align-items: center;    
-    justify-content: center;
-    padding: 10px 20px;     
-    box-sizing: border-box; 
-    z-index: 1000; 
-    opacity: 0; 
-    transform: translateX(-50%) translateY(50px); 
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
+    width: 80%; max-width: 900px; background-color: transparent; 
+    display: flex; align-items: center; justify-content: center;
+    padding: 10px 20px; box-sizing: border-box; z-index: 1000; 
+    opacity: 0; transform: translateX(-50%) translateY(50px); 
     transition: transform 0.4s cubic-bezier(0.215, 0.610, 0.355, 1.000), 
                 opacity 0.4s cubic-bezier(0.215, 0.610, 0.355, 1.000);
 }
-#streamweaver-overlay.show {
-    opacity: 1;     
-    transform: translateX(-50%) translateY(0); 
-}
+#streamweaver-overlay.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 #overlay-text {
-    margin: 0; 
-    padding: 0; 
-    color: white;                           
-    font-family: 'Open Sans', Arial, sans-serif; 
-    font-size: 32px;        
-    font-weight: bold;      
-    text-align: center;
-    text-shadow: 
-        1px 1px 0px rgba(0,0,0,0.8),
-        -1px -1px 0px rgba(0,0,0,0.8),
-        1px -1px 0px rgba(0,0,0,0.8),
-        -1px 1px 0px rgba(0,0,0,0.8),
-        0px 0px 8px rgba(0,0,0,0.9); 
+    margin: 0; padding: 0; color: white; font-size: 32px; font-weight: bold; text-align: center;
+    text-shadow: 1px 1px 0px rgba(0,0,0,0.8), -1px -1px 0px rgba(0,0,0,0.8),
+                 1px -1px 0px rgba(0,0,0,0.8), -1px 1px 0px rgba(0,0,0,0.8),
+                 0px 0px 8px rgba(0,0,0,0.9); 
     line-height: 1.3; 
 }
 
 /* --- Lower Third Styles --- */
 #lower-third-container {
-    position: fixed;
-    bottom: 60px; 
-    left: 30px;   
-    z-index: 1005;
-    opacity: 0;
-    transform: translateX(-100%); 
-    visibility: hidden;
+    position: fixed; bottom: 60px; left: 30px; z-index: 1005;
+    opacity: 0; transform: translateX(-100%); visibility: hidden;
     transition: transform 0.5s cubic-bezier(0.215, 0.610, 0.355, 1.000), 
-                opacity 0.4s ease-in-out,
-                visibility 0s 0.5s; 
+                opacity 0.4s ease-in-out, visibility 0s 0.5s; 
     color: white;
-    font-family: 'Open Sans', Arial, sans-serif;
 }
 #lower-third-container.show-lower-third {
-    opacity: 1;
-    transform: translateX(0); 
-    visibility: visible;
+    opacity: 1; transform: translateX(0); visibility: visible;
     transition: transform 0.5s cubic-bezier(0.215, 0.610, 0.355, 1.000), 
-                opacity 0.4s ease-in-out,
-                visibility 0s 0s; 
+                opacity 0.4s ease-in-out, visibility 0s 0s; 
 }
 .lower-third-content {
-    background-color: rgba(20, 30, 100, 0.85); 
-    padding: 15px 25px;
-    border-radius: 0 5px 5px 0; 
-    box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start; 
-    min-width: 300px; 
+    background-color: rgba(20, 30, 100, 0.85); padding: 15px 25px;
+    border-radius: 0 5px 5px 0; box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+    display: flex; flex-direction: column; align-items: flex-start; min-width: 300px; 
 }
-.lt-name-class {
-    font-size: 28px;
-    font-weight: 700; 
-    margin-bottom: 4px;
-    color: #ffffff;
+.lt-name-class { font-size: 28px; font-weight: 700; margin-bottom: 4px; color: #ffffff; }
+.lt-title-class { font-size: 20px; font-weight: 600; margin-bottom: 2px; color: #e0e0e0; }
+.lt-affiliation-class { font-size: 18px; font-weight: 400; color: #c0c0c0; }
+
+/* --- Ticker Styles --- */
+#ticker-container {
+    position: fixed;
+    bottom: 0; /* Positioned at the very bottom */
+    left: 0;
+    width: 100%;
+    height: 40px; /* Adjust height as needed */
+    background-color: rgba(0, 0, 0, 0.85); /* Dark semi-transparent background */
+    color: white;
+    overflow: hidden; /* Crucial: Hides the text that scrolls out of view */
+    display: flex; /* For vertical alignment of ticker-content-wrapper if needed */
+    align-items: center; /* Vertically center the content wrapper */
+    z-index: 1001; /* Above subtitles, adjust if needed */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
 }
-.lt-title-class {
-    font-size: 20px;
-    font-weight: 600; 
-    margin-bottom: 2px;
-    color: #e0e0e0; 
+
+#ticker-container.show-ticker {
+    opacity: 1;
+    visibility: visible;
 }
-.lt-affiliation-class {
-    font-size: 18px;
-    font-weight: 400; 
-    color: #c0c0c0; 
+
+#ticker-content-wrapper {
+    /* This element contains the text and is animated */
+    white-space: nowrap; /* Prevents text from wrapping */
+    /* Animation is applied dynamically via JS by adding/removing 'animate' class */
+}
+
+#ticker-content-wrapper.animate {
+    /* Animation applied when class is present */
+    animation-name: scroll-left-animation;
+    animation-duration: 25s; /* Adjust for scroll speed - longer duration = slower scroll */
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+#ticker-text-span {
+    /* The actual text element */
+    display: inline-block; /* Allows transform and respects padding */
+    font-size: 18px; /* Adjust font size as needed */
+    line-height: 40px; /* Match ticker-container height for vertical centering of text */
+    padding-right: 50px; /* Space after the text, useful if text is short or before it "repeats" */
+}
+
+@keyframes scroll-left-animation {
+    0% {
+        transform: translateX(100vw); /* Start off-screen to the right (viewport width) */
+    }
+    100% {
+        transform: translateX(-100%); /* Scroll completely off-screen to the left (width of the element itself) */
+    }
 }
