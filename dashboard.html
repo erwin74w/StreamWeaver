@@ -53,6 +53,12 @@
         button.secondary:hover {
             background-color: #545b62;
         }
+        button.alert { /* Style for Breaking News buttons */
+            background-color: #dc3545;
+        }
+        button.alert:hover {
+            background-color: #c82333;
+        }
         .control-group {
             margin-bottom: 20px;
             padding-bottom: 20px;
@@ -75,7 +81,7 @@
 
         <div class="control-group">
             <label for="ablyApiKey">Ably API Key:</label>
-            <input type="password" id="ablyApiKey" value="PpmbHg.J6_8kg:qC-BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik" placeholder="Enter your Ably API Key">
+            <input type="password" id="ablyApiKey" value="YOUR_ABLY_API_KEY_WAS_HERE" placeholder="Enter your Ably API Key">
             <button id="connectAbly">Connect to Ably</button>
             <div id="ablyStatus" style="margin-top: 5px; font-style: italic;">Not connected.</div>
         </div>
@@ -92,6 +98,13 @@
             <button id="showLogo">Show Logo</button>
             <button id="hideLogo">Hide Logo</button>
             <button id="toggleLogo" class="secondary">Toggle Logo</button>
+        </div>
+
+        <div class="control-group">
+            <h2>Breaking News Overlay</h2>
+            <button id="showBreakingNews" class="alert">Show Breaking News</button>
+            <button id="hideBreakingNews" class="alert">Hide Breaking News</button>
+            <button id="toggleBreakingNews" class="secondary alert">Toggle Breaking News</button>
         </div>
 
         <div id="status">
@@ -113,6 +126,11 @@
         const hideLogoButton = document.getElementById('hideLogo');
         const toggleLogoButton = document.getElementById('toggleLogo');
 
+        // Breaking News Buttons
+        const showBreakingNewsButton = document.getElementById('showBreakingNews');
+        const hideBreakingNewsButton = document.getElementById('hideBreakingNews');
+        const toggleBreakingNewsButton = document.getElementById('toggleBreakingNews');
+
         const CHANNEL_NAME = 'streamweaver-control';
         let ably = null;
         let controlChannel = null;
@@ -132,12 +150,11 @@
             }
 
             if (ably) {
-                ably.close(); // Close existing connection if any
+                ably.close(); 
             }
 
             ablyStatusElement.textContent = "Connecting to Ably...";
             ablyStatusElement.style.color = "orange";
-
             ably = new Ably.Realtime(apiKey);
 
             ably.connection.on('connected', () => {
@@ -154,7 +171,6 @@
                 console.error('Dashboard: Ably connection failed:', err);
                 disableControls();
             });
-
             ably.connection.on('closed', () => {
                 ablyStatusElement.textContent = "Ably connection closed.";
                 ablyStatusElement.style.color = "gray";
@@ -186,13 +202,20 @@
         function disableControls() {
             const buttons = document.querySelectorAll('.control-group button');
             buttons.forEach(button => button.disabled = true);
+            // Ensure Breaking News buttons are also targeted if selector was too broad
+            showBreakingNewsButton.disabled = true;
+            hideBreakingNewsButton.disabled = true;
+            toggleBreakingNewsButton.disabled = true;
         }
 
         function enableControls() {
-             const buttons = document.querySelectorAll('.control-group button');
+            const buttons = document.querySelectorAll('.control-group button');
             buttons.forEach(button => button.disabled = false);
+             // Ensure Breaking News buttons are also targeted
+            showBreakingNewsButton.disabled = false;
+            hideBreakingNewsButton.disabled = false;
+            toggleBreakingNewsButton.disabled = false;
         }
-
 
         connectAblyButton.addEventListener('click', connectToAbly);
 
@@ -206,22 +229,22 @@
         hideLogoButton.addEventListener('click', () => publishAction('logo-action', 'hide'));
         toggleLogoButton.addEventListener('click', () => publishAction('logo-action', 'toggle'));
 
-        // Initially disable controls until connected
+        // Breaking News Overlay Listeners
+        showBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', 'show'));
+        hideBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', 'hide'));
+        toggleBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', 'toggle'));
+
         disableControls();
-        // But enable API key input and connect button
         ablyApiKeyInput.disabled = false;
         connectAblyButton.disabled = false;
 
-        // Attempt to load API key from localStorage if previously saved
         const savedApiKey = localStorage.getItem('streamWeaverAblyApiKey');
         if (savedApiKey) {
             ablyApiKeyInput.value = savedApiKey;
         }
-        // Save API key on change
         ablyApiKeyInput.addEventListener('input', () => {
             localStorage.setItem('streamWeaverAblyApiKey', ablyApiKeyInput.value);
         });
-
     </script>
 </body>
 </html>
