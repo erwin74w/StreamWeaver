@@ -18,7 +18,7 @@ export class CSOOverlay {
     }
 
     show() {
-        if (this.containerElement) {
+        if (this.containerElement && !this.isVisible) {
             if (typeof this._onShowCallback === 'function') {
                 this._onShowCallback();
             }
@@ -28,12 +28,20 @@ export class CSOOverlay {
     }
 
     hide() {
-        if (this.containerElement) {
+        if (this.containerElement && this.isVisible) {
             this.containerElement.classList.remove('show-cso');
             logger.log("HIDDEN");
             if (typeof this._onHideCallback === 'function') {
                 this._onHideCallback();
             }
+        }
+    }
+
+    toggle() {
+        if (this.isVisible) {
+            this.hide();
+        } else {
+            this.show();
         }
     }
 
