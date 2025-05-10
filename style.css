@@ -32,32 +32,34 @@ body {
 
 /* --- BRB Fullscreen Overlay Styles --- */
 #brb-overlay-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw; /* Full viewport width */
-    height: 100vh; /* Full viewport height */
-    background-color: rgba(10, 10, 20, 0.95); /* Dark background, adjust as needed */
-    display: flex; /* For centering the image */
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-    z-index: 9999; /* Highest z-index to cover everything */
-    
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.5s ease-in-out, visibility 0s 0.5s; /* Delay visibility change for hiding */
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background-color: rgba(10, 10, 20, 0.95); 
+    display: flex; justify-content: center; align-items: center;
+    z-index: 9999; 
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.5s ease-in-out, visibility 0s 0.5s; 
 }
-
 #brb-overlay-container.show-brb {
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.5s ease-in-out, visibility 0s 0s; /* Make visible immediately when showing */
+    opacity: 1; visibility: visible;
+    transition: opacity 0.5s ease-in-out, visibility 0s 0s; 
+}
+#brb-image {
+    max-width: 80%; max-height: 80%; object-fit: contain; 
 }
 
-#brb-image {
-    max-width: 80%;  /* Max width of the image, e.g., 80% of viewport width */
-    max-height: 80%; /* Max height of the image, e.g., 80% of viewport height */
-    object-fit: contain; /* Scales image while maintaining aspect ratio and fitting within bounds */
-    /* Optional: Add a subtle shadow or glow if the image doesn't have one */
-    /* box-shadow: 0 0 40px rgba(255, 255, 255, 0.1); */
+/* --- CSO Fullscreen Overlay Styles --- */
+#cso-overlay-container {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background-color: rgba(10, 20, 10, 0.95); /* Slightly different bg for distinction if needed */
+    display: flex; justify-content: center; align-items: center;
+    z-index: 9998; /* Slightly lower than BRB if they could somehow both be triggered, but JS prevents this */
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.5s ease-in-out, visibility 0s 0.5s;
+}
+#cso-overlay-container.show-cso {
+    opacity: 1; visibility: visible;
+    transition: opacity 0.5s ease-in-out, visibility 0s 0s;
+}
+#cso-image {
+    max-width: 80%; max-height: 80%; object-fit: contain;
 }
