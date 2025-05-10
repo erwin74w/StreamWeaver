@@ -30,8 +30,14 @@
                 <button id="showCSO" class="dark-green">Show CSO Screen</button>
                 <button id="hideCSO" class="secondary">Hide CSO Screen</button>
             </div>
+            <div class="overlay-controls"> <!-- New Outro controls -->
+                <span id="outro-status-light" class="status-light unknown"></span>
+                <button id="showOutro" class="info">Show Outro Screen</button> <!-- Choose a color, e.g., info -->
+                <button id="hideOutro" class="secondary">Hide Outro Screen</button>
+            </div>
         </div>
 
+        <!-- ... (Other control groups: Ticker, Lower Third, Text, Logo, Breaking News - remain the same) ... -->
         <div class="control-group">
             <h2>News Ticker Control</h2>
             <div class="input-group"><label for="tickerTextInput">Ticker Text:</label><textarea id="tickerTextInput" placeholder="Enter text to scroll..."></textarea></div>
@@ -83,6 +89,7 @@
                 <button id="toggleBreakingNews" class="secondary alert">Toggle Breaking News</button>
             </div>
         </div>
+
 
         <div id="status-footer-log"><strong>Last Action Sent:</strong> <span id="lastAction">None</span> <br> <strong>General Log:</strong> <span id="generalLog">Awaiting connection...</span></div>
     </div>
