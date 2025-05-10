@@ -1,5 +1,5 @@
 // js/overlay-manager.js
-import { ABLY_API_KEY, CONTROL_CHANNEL_NAME, STATUS_CHANNEL_NAME } from './ably-config.js';
+import { ABLY_API_KEY, CONTROL_CHANNEL_NAME, STATUS_CHANNEL_NAME, DEBUG } from './ably-config.js'; // Import DEBUG
 import { fetchOverlayData } from './utils.js';
 
 import { TextOverlay } from './overlays/TextOverlay.js';
@@ -9,6 +9,13 @@ import { LowerThirdOverlay } from './overlays/LowerThirdOverlay.js';
 import { TickerOverlay } from './overlays/TickerOverlay.js';
 import { BRBOverlay } from './overlays/BRBOverlay.js';
 import { CSOOverlay } from './overlays/CSOOverlay.js';
+
+const LOG_PREFIX = "[OverlayManager]";
+const logger = {
+    log: (...args) => DEBUG && console.log(LOG_PREFIX, ...args),
+    warn: (...args) => DEBUG && console.warn(LOG_PREFIX, ...args),
+    error: (...args) => console.error(LOG_PREFIX, ...args),
+};
 
 export class OverlayManager {
     constructor() {
@@ -20,7 +27,6 @@ export class OverlayManager {
 
         this.textOverlay = new TextOverlay('streamweaver-overlay', 'overlay-text');
         this.logoOverlay = new LogoOverlay('logo-container');
-        // ... (rest of constructor is the same)
         this.breakingNewsOverlay = new BreakingNewsOverlay('breaking-news-container');
         this.lowerThirdOverlay = new LowerThirdOverlay('lower-third-container', 'lt-name', 'lt-title', 'lt-affiliation');
         this.tickerOverlay = new TickerOverlay('ticker-container', 'ticker-content-wrapper', 'ticker-text-span');
@@ -58,129 +64,125 @@ export class OverlayManager {
             brb: this.brbOverlay,
             cso: this.csoOverlay
         };
+        logger.log("OverlayManager instance created.");
     }
 
     async initialize() {
-        console.log('OverlayManager: Initializing...');
+        logger.log('Initializing...');
         try {
             const initialText = await fetchOverlayData('./overlay_data.json', "Overlay Ready");
             this.textOverlay.setText(initialText);
             this.connectToAbly();
         } catch (error) {
-            console.error("OverlayManager: Initialization failed", error);
+            logger.error("Initialization failed", error);
             this.textOverlay.setText("Error initializing overlay system.");
         }
     }
 
     connectToAbly() {
         if (!ABLY_API_KEY || ABLY_API_KEY === 'YOUR_ABLY_API_KEY_WAS_HERE' || ABLY_API_KEY.length < 10) {
-            const errorMsg = "OverlayManager: Ably API Key is missing or invalid. Ably connection aborted.";
-            console.error(errorMsg);
+            const errorMsg = "Ably API Key is missing or invalid. Ably connection aborted.";
+            logger.error(errorMsg); // This is critical, so log it always.
             this.textOverlay.setText("Ably connection error: API Key missing.");
             return;
         }
 
-        console.log('OverlayManager: Attempting to connect to Ably...');
+        logger.log('Attempting to connect to Ably...');
         try {
             this.ably = new Ably.Realtime(ABLY_API_KEY);
             this.initialStatesPublished = false; 
 
             this.ably.connection.on('connected', () => {
                 this.isAblyConnected = true;
-                console.log('OverlayManager: Ably connection is CONNECTED.');
+                logger.log('Ably connection is CONNECTED.');
                 
                 this.controlChannel = this.ably.channels.get(CONTROL_CHANNEL_NAME);
                 this.statusChannel = this.ably.channels.get(STATUS_CHANNEL_NAME);
-                console.log("OverlayManager: Got channel instances. Control:", this.controlChannel.name, "Status:", this.statusChannel.name);
+                logger.log("Got channel instances. Control:", this.controlChannel.name, "Status:", this.statusChannel.name);
 
                 let channelsAttached = 0;
-                const totalChannelsToAttach = 2; // control and status
+                const totalChannelsToAttach = 2;
 
                 const attemptInitialPublish = () => {
                     if (channelsAttached === totalChannelsToAttach && this.isAblyConnected) {
-                        console.log("OverlayManager: All required channels attached.");
+                        logger.log("All required channels attached.");
                         
-                        // Subscribe to control events (must be done after control channel is attached)
                         this.subscribeToAblyEvents(); 
-                        
-                        // Publish system connected status *first*
                         this.publishStatus('system', 'connected', 'Overlay client connected and channels ready.');
                         
-                        // Then publish initial states with a slight delay
-                        if (!this.initialStatesPublished) { // Double check flag before scheduling
-                            console.log("OverlayManager: Scheduling initial state publish...");
+                        if (!this.initialStatesPublished) {
+                            logger.log("Scheduling initial state publish...");
                             setTimeout(() => {
-                                if (this.isAblyConnected && !this.initialStatesPublished) { // Check connection and flag again
+                                if (this.isAblyConnected && !this.initialStatesPublished) {
                                     this.publishInitialOverlayStates();
-                                    this.initialStatesPublished = true; // Set flag AFTER successful publish attempt
+                                    this.initialStatesPublished = true; 
                                 } else {
-                                    console.warn("OverlayManager: Conditions not met for delayed initial state publish (connected:", this.isAblyConnected, "already published:", this.initialStatesPublished, ")");
+                                    logger.warn("Conditions not met for delayed initial state publish (connected:", this.isAblyConnected, "already published:", this.initialStatesPublished, ")");
                                 }
-                            }, 750); // Increased delay slightly to 750ms
+                            }, 750); 
                         }
                     }
                 };
 
-                console.log("OverlayManager: Attaching to control channel...");
+                logger.log("Attaching to control channel...");
                 this.controlChannel.attach((err) => {
                     if (err) {
-                        console.error(`OverlayManager: Failed to attach to control channel '${this.controlChannel.name}':`, err);
-                        // Potentially publish a system error status if status channel is already attached
+                        logger.error(`Failed to attach to control channel '${this.controlChannel.name}':`, err);
                         if (this.statusChannel && this.statusChannel.state === 'attached') {
                             this.publishStatus('system', 'error', `Failed to attach to control channel: ${err.message}`);
                         }
                         return;
                     }
-                    console.log(`OverlayManager: Control channel '${this.controlChannel.name}' ATTACHED.`);
+                    logger.log(`Control channel '${this.controlChannel.name}' ATTACHED.`);
                     channelsAttached++;
                     attemptInitialPublish();
                 });
 
-                console.log("OverlayManager: Attaching to status channel...");
+                logger.log("Attaching to status channel...");
                 this.statusChannel.attach((err) => {
                     if (err) {
-                        console.error(`OverlayManager: Failed to attach to status channel '${this.statusChannel.name}':`, err);
+                        logger.error(`Failed to attach to status channel '${this.statusChannel.name}':`, err);
                         return;
                     }
-                    console.log(`OverlayManager: Status channel '${this.statusChannel.name}' ATTACHED.`);
+                    logger.log(`Status channel '${this.statusChannel.name}' ATTACHED.`);
                     channelsAttached++;
                     attemptInitialPublish();
                 });
             });
 
-            this.ably.connection.on('failed', (error) => { /* ... same, ensure initialStatesPublished = false ... */ 
+            this.ably.connection.on('failed', (error) => {  
                 this.isAblyConnected = false;
                 this.initialStatesPublished = false;
-                console.error('OverlayManager: Ably connection failed:', error);
+                logger.error('Ably connection failed:', error);
                 this.textOverlay.setText("Ably connection failed.");
             });
-            this.ably.connection.on('closed', () => { /* ... same, ensure initialStatesPublished = false ... */ 
+            this.ably.connection.on('closed', () => {  
                 this.isAblyConnected = false;
                 this.initialStatesPublished = false;
-                console.log('OverlayManager: Ably connection closed.');
+                logger.log('Ably connection closed.');
             });
-            this.ably.connection.on('disconnected', () => { /* ... same, ensure initialStatesPublished = false ... */ 
+            this.ably.connection.on('disconnected', () => {  
                 this.isAblyConnected = false;
                 this.initialStatesPublished = false;
-                console.log('OverlayManager: Ably disconnected. Will attempt to reconnect.');
+                logger.log('Ably disconnected. Will attempt to reconnect.');
             });
         } catch (e) {
-            console.error("OverlayManager: Error initializing Ably Realtime client:", e);
+            logger.error("Error initializing Ably Realtime client:", e);
             this.textOverlay.setText("Failed to initialize Ably client.");
         }
     }
 
     publishStatus(overlayId, state, message = null, data = null) {
         if (!this.isAblyConnected) {
-            console.warn(`OverlayManager: Cannot publish status for ${overlayId} - Ably not connected.`);
+            logger.warn(`Cannot publish status for ${overlayId} - Ably not connected.`);
             return;
         }
         if (!this.statusChannel) {
-            console.warn(`OverlayManager: Cannot publish status for ${overlayId} - Status channel object is null.`);
+            logger.warn(`Cannot publish status for ${overlayId} - Status channel object is null.`);
             return;
         }
         if (this.statusChannel.state !== 'attached') {
-            console.warn(`OverlayManager: Cannot publish status for ${overlayId} - Status channel not attached (state: ${this.statusChannel.state}). Aborting publish.`);
+            logger.warn(`Cannot publish status for ${overlayId} - Status channel not attached (state: ${this.statusChannel.state}). Aborting publish.`);
             return;
         }
 
@@ -188,56 +190,56 @@ export class OverlayManager {
         if (message) payload.message = message;
         if (data) payload.data = data;
 
-        console.log(`OverlayManager: Publishing status for '${overlayId}': state='${state}'`, message ? `msg='${message}'` : '', data || '');
+        logger.log(`Publishing status for '${overlayId}': state='${state}'`, message ? `msg='${message}'` : '', data || '');
         this.statusChannel.publish('update', payload, (err) => { 
             if (err) {
-                console.error(`OverlayManager: Error publishing status for ${overlayId}:`, err);
+                logger.error(`Error publishing status for ${overlayId}:`, err);
             } else {
-                // console.log(`OverlayManager: Successfully published status for ${overlayId}`); // Can be too verbose
+                // logger.log(`Successfully published status for ${overlayId}`); // Too verbose
             }
         });
     }
 
     publishInitialOverlayStates() {
         if (!this.isAblyConnected || !this.statusChannel || this.statusChannel.state !== 'attached') {
-            console.warn("OverlayManager: publishInitialOverlayStates - Conditions not met (Ably/status channel not ready).");
+            logger.warn("publishInitialOverlayStates - Conditions not met (Ably/status channel not ready).");
             return;
         }
-        console.log("OverlayManager: ==> Starting publishInitialOverlayStates...");
+        logger.log("==> Starting publishInitialOverlayStates...");
         let publishedCount = 0;
         for (const overlayId in this.overlayInstanceMap) {
             const instance = this.overlayInstanceMap[overlayId];
             if (instance && typeof instance.isVisible !== 'undefined') {
-                // Log before publishing for this specific overlay
                 const currentState = instance.isVisible ? 'shown' : 'hidden';
-                console.log(`OverlayManager:   Publishing initial for '${overlayId}' -> '${currentState}'`);
+                logger.log(`  Publishing initial for '${overlayId}' -> '${currentState}'`);
                 this.publishStatus(overlayId, currentState, 'Initial state');
                 publishedCount++;
             } else {
-                console.warn(`OverlayManager:   Skipping initial for '${overlayId}' (instance or isVisible missing).`);
+                logger.warn(`  Skipping initial for '${overlayId}' (instance or isVisible missing).`);
             }
         }
-        console.log(`OverlayManager: ==> Finished publishInitialOverlayStates. Attempted to publish for ${publishedCount} overlays.`);
+        logger.log(`==> Finished publishInitialOverlayStates. Attempted to publish for ${publishedCount} overlays.`);
         this.publishStatus('system', 'initial_states_published', `Initial states published for ${publishedCount} overlays.`);
     }
 
 
     subscribeToAblyEvents() {
         if (!this.isAblyConnected || !this.controlChannel || this.controlChannel.state !== 'attached') {
-            console.error("OverlayManager: Cannot subscribe to control events - Ably/control channel not ready (state:", this.controlChannel?.state, ")");
+            logger.error("Cannot subscribe to control events - Ably/control channel not ready (state:", this.controlChannel?.state, ")");
             return;
         }
-        console.log(`OverlayManager: Subscribing to Ably actions on attached control channel '${CONTROL_CHANNEL_NAME}'`);
-        // ... (rest of createActionHandler and subscriptions are the same) ...
+        logger.log(`Subscribing to Ably actions on attached control channel '${CONTROL_CHANNEL_NAME}'`);
+        
         const createActionHandler = (overlayStringId, overlayInstance) => (message) => {
             const actionData = message.data;
             if (!actionData?.action) {
+                logger.warn(`No action specified in message for ${overlayStringId}. Data:`, actionData);
                 this.publishStatus(overlayStringId, 'error', 'No action specified in message.', actionData);
                 return;
             }
 
             const action = actionData.action.toLowerCase();
-            console.log(`OverlayManager: Received action '${action}' for ${overlayStringId}`, actionData); 
+            logger.log(`Received action '${action}' for ${overlayStringId}`, actionData); 
             try {
                 switch (action) {
                     case 'show':
@@ -261,14 +263,16 @@ export class OverlayManager {
                             overlayInstance.toggle(); 
                             this.publishStatus(overlayStringId, overlayInstance.isVisible ? 'shown' : 'hidden');
                         } else {
+                            logger.warn(`Overlay '${overlayStringId}' does not support toggle.`);
                             throw new Error(`Overlay '${overlayStringId}' does not support toggle.`);
                         }
                         break;
                     default:
+                        logger.warn(`Unknown action '${action}' for ${overlayStringId}.`);
                         throw new Error(`Unknown action: ${action}`);
                 }
             } catch (e) {
-                console.error(`OverlayManager: Error executing action '${action}' for ${overlayStringId}:`, e);
+                logger.error(`Error executing action '${action}' for ${overlayStringId}:`, e);
                 this.publishStatus(overlayStringId, 'error', `Failed to ${action} ${overlayStringId}: ${e.message}`, actionData);
             }
         };
@@ -280,8 +284,24 @@ export class OverlayManager {
         this.controlChannel.subscribe('ticker-action', createActionHandler('ticker', this.tickerOverlay));
         this.controlChannel.subscribe('brb-action', createActionHandler('brb', this.brbOverlay));
         this.controlChannel.subscribe('cso-action', createActionHandler('cso', this.csoOverlay));
-        console.log("OverlayManager: Subscribed to all control actions.");
+        logger.log("Subscribed to all control actions.");
     }
 
-    hideAllNonFullscreenOverlays() { /* ... (same as before) ... */ }
+    hideAllNonFullscreenOverlays() {
+        logger.log("Hiding all non-fullscreen overlays.");
+        this.nonFullscreenOverlays.forEach(overlay => {
+            if (overlay.isVisible) { // Check if it's visible before trying to hide
+                overlay.hide();
+                // Optionally publish status here if needed, though individual hide methods already log.
+                // Example: this.publishStatus(this.getOverlayIdByInstance(overlay), 'hidden', 'Hidden due to fullscreen mode');
+            }
+        });
+    }
+    // Helper to get overlayId string from instance if needed for above publishStatus
+    // getOverlayIdByInstance(instance) {
+    //     for (const id in this.overlayInstanceMap) {
+    //         if (this.overlayInstanceMap[id] === instance) return id;
+    //     }
+    //     return 'unknown-overlay';
+    // }
 }
