@@ -1,28 +1,37 @@
 // js/overlays/BreakingNewsOverlay.js
+import { DEBUG } from '../ably-config.js';
+
+const LOG_PREFIX = "[BreakingNewsOverlay]";
+const logger = {
+    log: (...args) => DEBUG && console.log(LOG_PREFIX, ...args),
+    error: (...args) => console.error(LOG_PREFIX, ...args),
+};
+
 export class BreakingNewsOverlay {
     constructor(elementId) {
         this.containerElement = document.getElementById(elementId);
-        if (!this.containerElement) console.error(`BreakingNewsOverlay: Element with ID '${elementId}' not found.`);
+        if (!this.containerElement) logger.error(`Element with ID '${elementId}' not found.`);
+        logger.log("BreakingNewsOverlay instance created.");
     }
 
     show() {
         if (this.containerElement) {
             this.containerElement.classList.add('show-breaking-news');
-            console.log("BN: SHOWN");
+            logger.log("SHOWN");
         }
     }
 
     hide() {
         if (this.containerElement) {
             this.containerElement.classList.remove('show-breaking-news');
-            console.log("BN: HIDDEN");
+            logger.log("HIDDEN");
         }
     }
 
     toggle() {
         if (this.containerElement) {
             this.containerElement.classList.toggle('show-breaking-news');
-            console.log(`BN: ${this.isVisible ? 'SHOWN' : 'HIDDEN'}`);
+            logger.log(this.isVisible ? 'SHOWN (toggled)' : 'HIDDEN (toggled)');
         }
     }
 
