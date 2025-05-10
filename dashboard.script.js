@@ -1,14 +1,12 @@
 // dashboard.script.js
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Global DEBUG Flag for Dashboard ---
     const DEBUG = true;
     const LOG_PREFIX = "[Dashboard]";
 
-    // Helper for conditional logging
     const logger = {
         log: (...args) => DEBUG && console.log(LOG_PREFIX, ...args),
         warn: (...args) => DEBUG && console.warn(LOG_PREFIX, ...args),
-        error: (...args) => console.error(LOG_PREFIX, ...args), // Errors are usually important
+        error: (...args) => console.error(LOG_PREFIX, ...args),
         info: (...args) => DEBUG && console.info(LOG_PREFIX, ...args),
     };
 
@@ -23,19 +21,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const ltTitleInput = document.getElementById('ltTitleInput');
     const ltAffiliationInput = document.getElementById('ltAffiliationInput');
 
+    // Adjusted overlayUiMap: 'primaryButton' will now refer to the main action button for the light's context.
+    // For BRB, CSO, LT, this will be their new toggle button.
+    // For Text, Logo, BN, this will be their existing toggle button.
     const overlayUiMap = {
-        brb: { light: document.getElementById('brb-status-light'), showButton: document.getElementById('showBRB') },
-        cso: { light: document.getElementById('cso-status-light'), showButton: document.getElementById('showCSO') },
-        ticker: { light: document.getElementById('ticker-status-light'), showButton: document.getElementById('showUpdateTicker') },
-        lowerThird: { light: document.getElementById('lowerThird-status-light'), showButton: document.getElementById('showLowerThird') },
-        text: { light: document.getElementById('text-status-light'), showButton: document.getElementById('showTextOverlay'), toggleButton: document.getElementById('toggleTextOverlay') },
-        logo: { light: document.getElementById('logo-status-light'), showButton: document.getElementById('showLogo'), toggleButton: document.getElementById('toggleLogo') },
-        breakingNews: { light: document.getElementById('breakingNews-status-light'), showButton: document.getElementById('showBreakingNews'), toggleButton: document.getElementById('toggleBreakingNews') }
+        brb:        { light: document.getElementById('brb-status-light'),          primaryButton: document.getElementById('toggleBRB') },
+        cso:        { light: document.getElementById('cso-status-light'),          primaryButton: document.getElementById('toggleCSO') },
+        ticker:     { light: document.getElementById('ticker-status-light'),       primaryButton: document.getElementById('showUpdateTicker') }, // Ticker keeps Show/Update & Hide
+        lowerThird: { light: document.getElementById('lowerThird-status-light'),  primaryButton: document.getElementById('toggleLowerThird') },
+        text:       { light: document.getElementById('text-status-light'),         primaryButton: document.getElementById('toggleTextOverlay') },
+        logo:       { light: document.getElementById('logo-status-light'),         primaryButton: document.getElementById('toggleLogo') },
+        breakingNews:{ light: document.getElementById('breakingNews-status-light'),primaryButton: document.getElementById('toggleBreakingNews') }
     };
     
     const allControlButtons = Array.from(document.querySelectorAll('.control-group button'));
     const allControlInputs = Array.from(document.querySelectorAll('.control-group input, .control-group textarea'));
-
 
     const CONTROL_CHANNEL_NAME = 'streamweaver-control';
     const STATUS_CHANNEL_NAME = 'streamweaver-status'; 
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Promise((resolve, reject) => {
             if (!channel) {
                 const errMsg = `Channel object for ${channelNameForLog} is null.`;
-                updateGeneralLog(errMsg, true); // This uses logger internally if it's an error
+                updateGeneralLog(errMsg, true);
                 reject(new Error(errMsg));
                 return;
             }
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             channel.attach((err) => {
                 if (err) {
                     const errMsg = `Failed to attach to ${channelNameForLog} Channel: ${err.message || 'Unknown Error'} (Code: ${err.code}, Status: ${err.statusCode})`;
-                    logger.error(errMsg); // Use logger.error
+                    logger.error(errMsg);
                     updateGeneralLog(errMsg, true);
                     setAblyStatus(`${channelNameForLog} channel attach error.`, 'var(--color-error)');
                     reject(err);
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const ui = overlayUiMap[overlayId];
                 
-                if (ui && ui.light) {
+                if (ui && ui.light) { // ui.primaryButton is also available if needed
                     logger.log(`Found UI mapping for '${overlayId}'. Light element:`, ui.light);
                     ui.light.className = 'status-light'; 
                     
@@ -240,36 +240,44 @@ document.addEventListener('DOMContentLoaded', () => {
         allControlInputs.forEach(input => input.disabled = false);
     }
 
+    // --- Event Listeners ---
     connectAblyButton.addEventListener('click', connectToAbly);
     
-    document.getElementById('showBRB').addEventListener('click', () => publishAction('brb-action', { action: 'show' }));
-    document.getElementById('hideBRB').addEventListener('click', () => publishAction('brb-action', { action: 'hide' }));
-    document.getElementById('showCSO').addEventListener('click', () => publishAction('cso-action', { action: 'show' }));
-    document.getElementById('hideCSO').addEventListener('click', () => publishAction('cso-action', { action: 'hide' }));
+    // BRB
+    document.getElementById('toggleBRB').addEventListener('click', () => publishAction('brb-action', { action: 'toggle' }));
+    // CSO
+    document.getElementById('toggleCSO').addEventListener('click', () => publishAction('cso-action', { action: 'toggle' }));
+    
+    // Ticker (Keeps Show/Update and Hide)
     document.getElementById('showUpdateTicker').addEventListener('click', () => { 
         const text = tickerTextInput.value.trim(); 
         if (!text) { alert("Ticker text required."); tickerTextInput.focus(); return; } 
         publishAction('ticker-action', { action: 'show', text: text }); 
     });
     document.getElementById('hideTicker').addEventListener('click', () => publishAction('ticker-action', { action: 'hide' }));
-    document.getElementById('showLowerThird').addEventListener('click', () => { 
+    
+    // Lower Third
+    document.getElementById('toggleLowerThird').addEventListener('click', () => { 
         const name = ltNameInput.value.trim(); 
         const title = ltTitleInput.value.trim(); 
         const affiliation = ltAffiliationInput.value.trim(); 
-        if (!name) { alert("Lower Third Name required."); ltNameInput.focus(); return; } 
-        publishAction('lower-third-action', { action: 'show', name: name, title: title, affiliation: affiliation }); 
+        // For toggle, name is not strictly required to hide, but required to show.
+        // The overlay client's toggle will handle logic. If toggling to show and name is missing, it might show empty.
+        // It's good practice to ensure data is present if intending to show.
+        if (!name && (overlayUiMap.lowerThird.light.classList.contains('hidden') || overlayUiMap.lowerThird.light.classList.contains('unknown')) ) { 
+            alert("Lower Third Name required to show/toggle on."); ltNameInput.focus(); return; 
+        }
+        publishAction('lower-third-action', { action: 'toggle', name: name, title: title, affiliation: affiliation }); 
     });
-    document.getElementById('hideLowerThird').addEventListener('click', () => publishAction('lower-third-action', { action: 'hide' }));
-    document.getElementById('showTextOverlay').addEventListener('click', () => publishAction('overlay-action', { action: 'show' }));
-    document.getElementById('hideTextOverlay').addEventListener('click', () => publishAction('overlay-action', { action: 'hide' }));
+    
+    // Text Overlay
     document.getElementById('toggleTextOverlay').addEventListener('click', () => publishAction('overlay-action', { action: 'toggle' }));
-    document.getElementById('showLogo').addEventListener('click', () => publishAction('logo-action', { action: 'show' }));
-    document.getElementById('hideLogo').addEventListener('click', () => publishAction('logo-action', { action: 'hide' }));
+    // Logo Overlay
     document.getElementById('toggleLogo').addEventListener('click', () => publishAction('logo-action', { action: 'toggle' }));
-    document.getElementById('showBreakingNews').addEventListener('click', () => publishAction('breaking-news-action', { action: 'show' }));
-    document.getElementById('hideBreakingNews').addEventListener('click', () => publishAction('breaking-news-action', { action: 'hide' }));
+    // Breaking News
     document.getElementById('toggleBreakingNews').addEventListener('click', () => publishAction('breaking-news-action', { action: 'toggle' }));
 
+    // --- Initialization ---
     disableControls(); 
     ablyApiKeyInput.disabled = false; 
     connectAblyButton.disabled = false;
