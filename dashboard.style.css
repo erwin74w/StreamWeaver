@@ -40,7 +40,7 @@ textarea {
 .overlay-controls {
     display: flex;         /* Use flexbox for the entire group */
     align-items: center;   /* Vertically align all direct children */
-    flex-wrap: wrap;
+    /* flex-wrap: wrap; /* REMOVE or comment out this line */
     margin-bottom: 10px;
 }
 
@@ -62,11 +62,10 @@ textarea {
     border-radius: 4px; 
     cursor: pointer; 
     margin-right: 5px; 
-    /* margin-bottom is handled by .overlay-controls container */
     font-size: 16px; 
     transition: background-color 0.2s ease, opacity 0.2s ease;
-    /* Remove individual bottom margin as .overlay-controls handles group spacing */
-    margin-bottom: 0; 
+    margin-bottom: 0; /* Handled by .overlay-controls parent */
+    white-space: nowrap; /* Prevent button text from wrapping, helps keep button width consistent */
 }
 
 
@@ -96,6 +95,9 @@ button.dark-green { background-color: #00695c; }
     border-bottom: none; 
 }
 
+/* For Fullscreen Modes, if you still want them on separate lines, 
+   you'd keep the <br> in the HTML or style them differently.
+   This change makes ALL .overlay-controls try to be single-line. */
 .fullscreen-controls .overlay-controls {
     margin-bottom: 5px; 
 }
