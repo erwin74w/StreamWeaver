@@ -1,5 +1,5 @@
 // js/overlay-manager.js
-import { ABLY_API_KEY, CONTROL_CHANNEL_NAME, STATUS_CHANNEL_NAME } from './ably-config.js'; // Updated import
+import { ABLY_API_KEY, CONTROL_CHANNEL_NAME, STATUS_CHANNEL_NAME } from './ably-config.js';
 import { fetchOverlayData } from './utils.js';
 
 import { TextOverlay } from './overlays/TextOverlay.js';
@@ -14,7 +14,7 @@ export class OverlayManager {
     constructor() {
         this.ably = null;
         this.controlChannel = null;
-        this.statusChannel = null; // New for publishing status
+        this.statusChannel = null; 
         this.isAblyConnected = false;
 
         this.textOverlay = new TextOverlay('streamweaver-overlay', 'overlay-text');
@@ -24,21 +24,20 @@ export class OverlayManager {
         this.tickerOverlay = new TickerOverlay('ticker-container', 'ticker-content-wrapper', 'ticker-text-span');
 
         this.brbOverlay = new BRBOverlay('brb-overlay-container', 
-            () => { // onShow
-                this.csoOverlay.hide(); // Ensure other fullscreen is hidden
-                // No direct status publish for csoOverlay.hide() here; its own hide method will trigger status if it was visible.
+            () => { 
+                this.csoOverlay.hide(); 
                 this.hideAllNonFullscreenOverlays();
             },
-            () => { // onHide
+            () => { 
                  this.hideAllNonFullscreenOverlays();
             }
         );
         this.csoOverlay = new CSOOverlay('cso-overlay-container',
-            () => { // onShow
+            () => { 
                 this.brbOverlay.hide(); 
                 this.hideAllNonFullscreenOverlays();
             },
-            () => { // onHide
+            () => { 
                  this.hideAllNonFullscreenOverlays();
             }
         );
@@ -48,7 +47,6 @@ export class OverlayManager {
             this.lowerThirdOverlay, this.tickerOverlay
         ];
 
-        // Map overlay string IDs (used in Ably messages and status reporting) to instances
         this.overlayInstanceMap = {
             text: this.textOverlay,
             logo: this.logoOverlay,
@@ -65,11 +63,12 @@ export class OverlayManager {
         try {
             const initialText = await fetchOverlayData('./overlay_data.json', "Overlay Ready");
             this.textOverlay.setText(initialText);
+            // By default, most overlays are hidden. We will publish this after Ably connects.
             this.connectToAbly();
-        } catch (error) {
+        } catch (error)
+        {
             console.error("OverlayManager: Initialization failed", error);
             this.textOverlay.setText("Error initializing overlay system.");
-            // If Ably connection fails later, status won't be sent. Consider this.
         }
     }
 
@@ -89,9 +88,10 @@ export class OverlayManager {
                 this.isAblyConnected = true;
                 console.log('OverlayManager: Successfully connected to Ably!');
                 this.controlChannel = this.ably.channels.get(CONTROL_CHANNEL_NAME);
-                this.statusChannel = this.ably.channels.get(STATUS_CHANNEL_NAME); // Get status channel
+                this.statusChannel = this.ably.channels.get(STATUS_CHANNEL_NAME);
                 this.subscribeToAblyEvents();
                 this.publishStatus('system', 'connected', 'Overlay client connected to Ably.');
+                this.publishInitialOverlayStates(); // <<< NEW: Publish initial states
             });
 
             this.ably.connection.on('failed', (error) => {
@@ -99,18 +99,14 @@ export class OverlayManager {
                 console.error('OverlayManager: Ably connection failed:', error);
                 this.textOverlay.setText("Ably connection failed.");
             });
-            // Add other connection state handlers as before (closed, disconnected)
             this.ably.connection.on('closed', () => {
                 this.isAblyConnected = false;
                 console.log('OverlayManager: Ably connection closed.');
-                 // this.publishStatus('system', 'disconnected', 'Overlay client disconnected from Ably.'); // Can't publish if closed
             });
-
             this.ably.connection.on('disconnected', () => {
                 this.isAblyConnected = false;
                 console.log('OverlayManager: Ably disconnected. Will attempt to reconnect.');
             });
-
         } catch (e) {
             console.error("OverlayManager: Error initializing Ably Realtime client:", e);
             this.textOverlay.setText("Failed to initialize Ably client.");
@@ -122,18 +118,37 @@ export class OverlayManager {
             console.warn("OverlayManager: Cannot publish status, Ably not connected or status channel not available.", { overlayId, state, message });
             return;
         }
-        const payload = { overlayId, state }; // overlayId will be 'logo', 'ticker', etc.
+        const payload = { overlayId, state }; 
         if (message) payload.message = message;
         if (data) payload.data = data;
 
-        this.statusChannel.publish('update', payload, (err) => { // Publishing 'update' event with payload
+        this.statusChannel.publish('update', payload, (err) => { 
             if (err) {
                 console.error(`OverlayManager: Error publishing status for ${overlayId}:`, err);
-            } else {
-                // console.log(`OverlayManager: Status published for ${overlayId}:`, payload); // Can be verbose
             }
         });
     }
+
+    // <<< NEW METHOD >>>
+    publishInitialOverlayStates() {
+        if (!this.isAblyConnected || !this.statusChannel) {
+            console.warn("OverlayManager: Cannot publish initial states, Ably not ready.");
+            return;
+        }
+        console.log("OverlayManager: Publishing initial states of all overlays...");
+        for (const overlayId in this.overlayInstanceMap) {
+            const instance = this.overlayInstanceMap[overlayId];
+            if (instance && typeof instance.isVisible !== 'undefined') {
+                // The isVisible getter in each overlay class will tell us its current state.
+                // Most overlays start hidden by CSS (opacity:0, visibility:hidden).
+                this.publishStatus(overlayId, instance.isVisible ? 'shown' : 'hidden', 'Initial state');
+            } else {
+                console.warn(`OverlayManager: Overlay instance or isVisible method not found for ${overlayId} during initial state publish.`);
+            }
+        }
+        this.publishStatus('system', 'initial_states_published', 'All initial overlay states have been published.');
+    }
+
 
     subscribeToAblyEvents() {
         if (!this.controlChannel) {
@@ -142,7 +157,6 @@ export class OverlayManager {
         }
         console.log(`OverlayManager: Subscribing to Ably actions on channel '${CONTROL_CHANNEL_NAME}'`);
 
-        // Generic handler factory
         const createActionHandler = (overlayStringId, overlayInstance) => (message) => {
             const actionData = message.data;
             if (!actionData?.action) {
@@ -155,23 +169,23 @@ export class OverlayManager {
                 switch (action) {
                     case 'show':
                         if (overlayStringId === 'lowerThird') {
-                            overlayInstance.show(actionData);
+                            overlayInstance.show(actionData); // show method handles its own DOM updates
                             this.publishStatus(overlayStringId, 'shown', null, { name: actionData.name, title: actionData.title, affiliation: actionData.affiliation });
                         } else if (overlayStringId === 'ticker') {
-                            overlayInstance.updateAndShow(actionData);
+                            overlayInstance.updateAndShow(actionData); // updateAndShow handles its own DOM updates
                             this.publishStatus(overlayStringId, 'shown', null, { text: actionData.text });
                         } else {
-                            overlayInstance.show();
+                            overlayInstance.show(); // show method handles its own DOM updates
                             this.publishStatus(overlayStringId, 'shown');
                         }
                         break;
                     case 'hide':
-                        overlayInstance.hide();
+                        overlayInstance.hide(); // hide method handles its own DOM updates
                         this.publishStatus(overlayStringId, 'hidden');
                         break;
                     case 'toggle':
                         if (typeof overlayInstance.toggle === 'function') {
-                            overlayInstance.toggle();
+                            overlayInstance.toggle(); // toggle method handles its own DOM updates
                             this.publishStatus(overlayStringId, overlayInstance.isVisible ? 'shown' : 'hidden');
                         } else {
                             throw new Error(`Overlay '${overlayStringId}' does not support toggle.`);
@@ -197,12 +211,11 @@ export class OverlayManager {
 
     hideAllNonFullscreenOverlays() {
         this.nonFullscreenOverlays.forEach(overlay => {
-            // Find the string ID for the overlay instance
             const overlayStringId = Object.keys(this.overlayInstanceMap).find(key => this.overlayInstanceMap[key] === overlay);
             if (overlay && typeof overlay.hide === 'function') {
-                if (overlay.isVisible) { // Only hide and publish if it was visible
+                if (overlay.isVisible) { 
                     overlay.hide();
-                    if (overlayStringId) { // Should always be found if overlay is in nonFullscreenOverlays
+                    if (overlayStringId) { 
                         this.publishStatus(overlayStringId, 'hidden', 'Automatically hidden by fullscreen overlay.');
                     }
                 }
