@@ -4,6 +4,7 @@ Weaving brilliance into Live Streams
 
 directory structure should look like this:
 .
+
 ├── index.html
 ├── dashboard.html
 ├── style.css
