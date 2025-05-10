@@ -12,7 +12,7 @@
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input[type="text"], input[type="password"], textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
         textarea { min-height: 60px; resize: vertical; }
-        button { color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; margin-bottom: 10px; font-size: 16px; }
+        button { color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; margin-bottom: 10px; font-size: 16px; transition: background-color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease; }
         button:hover { opacity: 0.9; }
         button.primary { background-color: #007bff; }
         button.secondary { background-color: #6c757d; }
@@ -20,12 +20,33 @@
         button.info { background-color: #17a2b8; }
         button.success { background-color: #28a745; }
         button.warning { background-color: #ffc107; color: black !important; } 
-        button.dark-green { background-color: #00695c; } /* For CSO */
+        button.dark-green { background-color: #00695c; }
+
+        /* Styles for overlay status indication on buttons */
+        button.overlay-shown {
+            box-shadow: inset 0 0 0 2px #28a745, 0 0 5px #28a745; /* Green inset and outer glow */
+        }
+        button.overlay-error {
+            box-shadow: inset 0 0 0 2px #dc3545, 0 0 5px #dc3545; /* Red inset and outer glow */
+        }
+        .status-text-indicator {
+            display: inline-block;
+            font-size: 0.85em;
+            font-style: italic;
+            margin-left: 5px;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .status-visible { color: green; background-color: #e6ffed; border: 1px solid #c3e6cb;}
+        .status-hidden { color: #6c757d; background-color: #f8f9fa; border: 1px solid #dee2e6;}
+        .status-error { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb;}
+
+
         .control-group { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
         .control-group:last-child { border-bottom: none; }
-        .fullscreen-controls button { margin-bottom: 5px; } /* Tighter spacing for grouped fullscreen buttons */
+        .fullscreen-controls button { margin-bottom: 5px; }
         .input-group { margin-bottom: 10px; }
-        #status { margin-top: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; }
+        #status-footer { margin-top: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -41,17 +62,17 @@
 
         <div class="control-group fullscreen-controls">
             <h2>Fullscreen Modes</h2>
-            <button id="showBRB" class="warning">Show BRB Screen</button>
+            <button id="showBRB" class="warning">Show BRB Screen</button><span id="brb-status-indicator" class="status-text-indicator"></span>
             <button id="hideBRB" class="secondary">Hide BRB Screen</button>
             <br>
-            <button id="showCSO" class="dark-green">Show CSO Screen</button>
+            <button id="showCSO" class="dark-green">Show CSO Screen</button><span id="cso-status-indicator" class="status-text-indicator"></span>
             <button id="hideCSO" class="secondary">Hide CSO Screen</button>
         </div>
 
         <div class="control-group">
             <h2>News Ticker Control</h2>
             <div class="input-group"><label for="tickerTextInput">Ticker Text:</label><textarea id="tickerTextInput" placeholder="Enter text to scroll..."></textarea></div>
-            <button id="showUpdateTicker" class="success">Show / Update Ticker</button>
+            <button id="showUpdateTicker" class="success">Show / Update Ticker</button><span id="ticker-status-indicator" class="status-text-indicator"></span>
             <button id="hideTicker" class="secondary">Hide Ticker</button>
         </div>
 
@@ -60,32 +81,32 @@
             <div class="input-group"><label for="ltNameInput">Name:</label><input type="text" id="ltNameInput" placeholder="e.g., Dr. Jane Smith"></div>
             <div class="input-group"><label for="ltTitleInput">Title:</label><input type="text" id="ltTitleInput" placeholder="e.g., Chief Medical Officer"></div>
             <div class="input-group"><label for="ltAffiliationInput">Affiliation:</label><input type="text" id="ltAffiliationInput" placeholder="e.g., City Hospital"></div>
-            <button id="showLowerThird" class="info">Show Lower Third</button>
+            <button id="showLowerThird" class="info">Show Lower Third</button><span id="lowerThird-status-indicator" class="status-text-indicator"></span>
             <button id="hideLowerThird" class="secondary">Hide Lower Third</button>
         </div>
 
         <div class="control-group">
             <h2>Text Overlay (Subtitles)</h2>
-            <button id="showTextOverlay" class="primary">Show Text</button>
+            <button id="showTextOverlay" class="primary">Show Text</button><span id="text-status-indicator" class="status-text-indicator"></span>
             <button id="hideTextOverlay" class="primary">Hide Text</button>
             <button id="toggleTextOverlay" class="secondary">Toggle Text</button>
         </div>
 
         <div class="control-group">
             <h2>Logo Overlay</h2>
-            <button id="showLogo" class="primary">Show Logo</button>
+            <button id="showLogo" class="primary">Show Logo</button><span id="logo-status-indicator" class="status-text-indicator"></span>
             <button id="hideLogo" class="primary">Hide Logo</button>
             <button id="toggleLogo" class="secondary">Toggle Logo</button>
         </div>
 
         <div class="control-group">
             <h2>Breaking News Overlay</h2>
-            <button id="showBreakingNews" class="alert">Show Breaking News</button>
+            <button id="showBreakingNews" class="alert">Show Breaking News</button><span id="breakingNews-status-indicator" class="status-text-indicator"></span>
             <button id="hideBreakingNews" class="alert">Hide Breaking News</button>
             <button id="toggleBreakingNews" class="secondary alert">Toggle Breaking News</button>
         </div>
 
-        <div id="status"><strong>Last Action:</strong> <span id="lastAction">None</span></div>
+        <div id="status-footer"><strong>Last Action Sent:</strong> <span id="lastAction">None</span> <br> <strong>Last Overlay Status:</strong> <span id="lastOverlayStatus">Awaiting connection...</span></div>
     </div>
 
     <script>
@@ -93,82 +114,171 @@
         const connectAblyButton = document.getElementById('connectAbly');
         const ablyStatusElement = document.getElementById('ablyStatus');
         const lastActionElement = document.getElementById('lastAction');
+        const lastOverlayStatusElement = document.getElementById('lastOverlayStatus');
 
-        // BRB Buttons
-        const showBRBButton = document.getElementById('showBRB');
-        const hideBRBButton = document.getElementById('hideBRB');
-        // CSO Buttons
-        const showCSOButton = document.getElementById('showCSO');
-        const hideCSOButton = document.getElementById('hideCSO');
 
-        // Other element getters (Ticker, LT, etc.)
+        // Ticker, LT inputs
         const tickerTextInput = document.getElementById('tickerTextInput');
-        const showUpdateTickerButton = document.getElementById('showUpdateTicker');
-        const hideTickerButton = document.getElementById('hideTicker');
         const ltNameInput = document.getElementById('ltNameInput');
         const ltTitleInput = document.getElementById('ltTitleInput');
         const ltAffiliationInput = document.getElementById('ltAffiliationInput');
-        const showLowerThirdButton = document.getElementById('showLowerThird');
-        const hideLowerThirdButton = document.getElementById('hideLowerThird');
-        const showTextButton = document.getElementById('showTextOverlay');
-        const hideTextButton = document.getElementById('hideTextOverlay');
-        const toggleTextButton = document.getElementById('toggleTextOverlay');
-        const showLogoButton = document.getElementById('showLogo');
-        const hideLogoButton = document.getElementById('hideLogo');
-        const toggleLogoButton = document.getElementById('toggleLogo');
-        const showBreakingNewsButton = document.getElementById('showBreakingNews');
-        const hideBreakingNewsButton = document.getElementById('hideBreakingNews');
-        const toggleBreakingNewsButton = document.getElementById('toggleBreakingNews');
 
-        const CHANNEL_NAME = 'streamweaver-control';
+        // Mapping overlay IDs (from status messages) to their control button and status indicator
+        const overlayUiMap = {
+            brb: { button: document.getElementById('showBRB'), indicator: document.getElementById('brb-status-indicator'), toggleButton: null },
+            cso: { button: document.getElementById('showCSO'), indicator: document.getElementById('cso-status-indicator'), toggleButton: null },
+            ticker: { button: document.getElementById('showUpdateTicker'), indicator: document.getElementById('ticker-status-indicator'), toggleButton: null },
+            lowerThird: { button: document.getElementById('showLowerThird'), indicator: document.getElementById('lowerThird-status-indicator'), toggleButton: null },
+            text: { button: document.getElementById('showTextOverlay'), indicator: document.getElementById('text-status-indicator'), toggleButton: document.getElementById('toggleTextOverlay') },
+            logo: { button: document.getElementById('showLogo'), indicator: document.getElementById('logo-status-indicator'), toggleButton: document.getElementById('toggleLogo') },
+            breakingNews: { button: document.getElementById('showBreakingNews'), indicator: document.getElementById('breakingNews-status-indicator'), toggleButton: document.getElementById('toggleBreakingNews') }
+        };
+        // All other buttons (hide buttons etc.)
+        const hideBRBButton = document.getElementById('hideBRB');
+        const hideCSOButton = document.getElementById('hideCSO');
+        const hideTickerButton = document.getElementById('hideTicker');
+        const hideLowerThirdButton = document.getElementById('hideLowerThird');
+        const hideTextButton = document.getElementById('hideTextOverlay');
+        const hideLogoButton = document.getElementById('hideLogo');
+        const hideBreakingNewsButton = document.getElementById('hideBreakingNews');
+
+
+        const CONTROL_CHANNEL_NAME = 'streamweaver-control';
+        const STATUS_CHANNEL_NAME = 'streamweaver-status'; // For receiving status updates
         let ably = null;
         let controlChannel = null;
+        let statusChannel = null; // For receiving status
 
-        function updateStatus(message) { console.log("Dashboard:", message); lastActionElement.textContent = message; }
-        function connectToAbly() { /* ... (Same as before) ... */ 
+        function updateLastAction(message) { console.log("Dashboard Sent:", message); lastActionElement.textContent = message; }
+        function updateLastOverlayStatusMsg(message) { console.log("Dashboard Rcvd Status Update:", message); lastOverlayStatusElement.textContent = message; }
+        
+        function connectToAbly() {
             const apiKey = ablyApiKeyInput.value;
-            if (!apiKey || apiKey === 'YOUR_ABLY_API_KEY_WAS_HERE' || apiKey.length < 10) { ablyStatusElement.textContent = "Valid API Key required."; ablyStatusElement.style.color = "red"; return; }
-            if (ably) ably.close();
+            if (!apiKey || apiKey === 'YOUR_ABLY_API_KEY_WAS_HERE' || apiKey.length < 10) {
+                ablyStatusElement.textContent = "Valid API Key required."; ablyStatusElement.style.color = "red"; return;
+            }
+            if (ably) {
+                 ably.close(); // Important: Close existing connection if any
+                 ably = null; controlChannel = null; statusChannel = null; // Reset
+            }
             ablyStatusElement.textContent = "Connecting..."; ablyStatusElement.style.color = "orange";
-            ably = new Ably.Realtime(apiKey);
-            ably.connection.on('connected', () => { ablyStatusElement.textContent = `Connected! (Channel: ${CHANNEL_NAME})`; ablyStatusElement.style.color = "green"; controlChannel = ably.channels.get(CHANNEL_NAME); enableControls(); });
-            ably.connection.on('failed', (err) => { ablyStatusElement.textContent = `Ably connection failed.`; ablyStatusElement.style.color = "red"; console.error('Dashboard Ably fail:', err); disableControls(); });
-            ably.connection.on('closed', () => { ablyStatusElement.textContent = "Ably closed."; ablyStatusElement.style.color = "gray"; disableControls(); });
-            ably.connection.on('disconnected', () => { ablyStatusElement.textContent = "Ably disconnected."; ablyStatusElement.style.color = "orange"; disableControls(); });
+            
+            try {
+                ably = new Ably.Realtime(apiKey);
+            } catch (e) {
+                ablyStatusElement.textContent = `Ably client init failed: ${e.message}`; ablyStatusElement.style.color = "red"; console.error('Dashboard Ably client init fail:', e); disableControls();
+                return;
+            }
+
+            ably.connection.on('connected', () => {
+                ablyStatusElement.textContent = `Connected! (Ctrl: ${CONTROL_CHANNEL_NAME}, Status: ${STATUS_CHANNEL_NAME})`;
+                ablyStatusElement.style.color = "green";
+                controlChannel = ably.channels.get(CONTROL_CHANNEL_NAME);
+                statusChannel = ably.channels.get(STATUS_CHANNEL_NAME); // Get the status channel
+                subscribeToOverlayStatus(); // Subscribe to status updates
+                enableControls();
+                updateLastOverlayStatusMsg("Awaiting initial overlay status...");
+            });
+            ably.connection.on('failed', (err) => { ablyStatusElement.textContent = `Ably connection failed: ${err.reason}`; ablyStatusElement.style.color = "red"; console.error('Dashboard Ably fail:', err); disableControls(); });
+            ably.connection.on('closed', () => { ablyStatusElement.textContent = "Ably connection closed."; ablyStatusElement.style.color = "gray"; disableControls(); });
+            ably.connection.on('disconnected', () => { ablyStatusElement.textContent = "Ably disconnected. Will attempt to reconnect."; ablyStatusElement.style.color = "orange"; disableControls(); });
         }
-        function publishAction(eventName, payload) { /* ... (Same as before) ... */
-            if (!controlChannel) { updateStatus("Error: Not connected."); ablyStatusElement.textContent = "Not connected."; ablyStatusElement.style.color = "red"; return; }
+
+        function publishAction(eventName, payload) {
+            if (!controlChannel) { updateLastAction("Error: Not connected to control channel."); ablyStatusElement.textContent = "Not connected."; ablyStatusElement.style.color = "red"; return; }
             controlChannel.publish(eventName, payload, (err) => {
-                if (err) { updateStatus(`Error publishing ${eventName}: ${err.message}`); } else { updateStatus(`Sent ${eventName}: ${JSON.stringify(payload)}`); }
+                if (err) { updateLastAction(`Error publishing ${eventName}: ${err.message}`); } 
+                else { updateLastAction(`Sent ${eventName}: ${JSON.stringify(payload)}`); }
             });
         }
-        function disableControls() { document.querySelectorAll('.control-group button, .control-group input, .control-group textarea').forEach(el => el.disabled = true); ablyApiKeyInput.disabled = false; connectAblyButton.disabled = false;}
-        function enableControls() { document.querySelectorAll('.control-group button, .control-group input, .control-group textarea').forEach(el => el.disabled = false); }
+
+        function subscribeToOverlayStatus() {
+            if (!statusChannel) {
+                console.error("Dashboard: Status channel not available for subscription.");
+                updateLastOverlayStatusMsg("Error: Cannot subscribe to status updates.");
+                return;
+            }
+            statusChannel.subscribe('update', (message) => {
+                const { overlayId, state, message: statusMsg, data } = message.data;
+                updateLastOverlayStatusMsg(`ID: ${overlayId}, State: ${state}${statusMsg ? ', Info: ' + statusMsg : ''}`);
+
+                const ui = overlayUiMap[overlayId];
+                if (ui) {
+                    // Clear previous button states
+                    ui.button.classList.remove('overlay-shown', 'overlay-error');
+                    if (ui.toggleButton) ui.toggleButton.classList.remove('overlay-shown', 'overlay-error');
+
+                    ui.indicator.classList.remove('status-visible', 'status-hidden', 'status-error');
+
+                    if (state === 'shown') {
+                        ui.button.classList.add('overlay-shown');
+                        if (ui.toggleButton) ui.toggleButton.classList.add('overlay-shown'); // Reflect toggle state
+                        ui.indicator.textContent = "Visible";
+                        ui.indicator.classList.add('status-visible');
+                    } else if (state === 'hidden') {
+                        // 'overlay-shown' is already removed.
+                        ui.indicator.textContent = "Hidden";
+                        ui.indicator.classList.add('status-hidden');
+                    } else if (state === 'error') {
+                        ui.button.classList.add('overlay-error');
+                        if (ui.toggleButton) ui.toggleButton.classList.add('overlay-error');
+                        ui.indicator.textContent = `Error: ${statusMsg || 'Unknown'}`;
+                        ui.indicator.classList.add('status-error');
+                    }
+                } else if (overlayId === 'system' && state === 'connected') {
+                     updateLastOverlayStatusMsg(`Overlay client reported: ${statusMsg}`);
+                } else if (overlayId !== 'system') {
+                    console.warn("Dashboard: Received status for unmapped overlayId:", overlayId);
+                }
+            });
+            console.log("Dashboard: Subscribed to overlay status updates on channel:", STATUS_CHANNEL_NAME);
+        }
+
+        function disableControls() {
+            document.querySelectorAll('.control-group button, .control-group input, .control-group textarea').forEach(el => el.disabled = true);
+            ablyApiKeyInput.disabled = false;
+            connectAblyButton.disabled = false;
+            // Reset UI indicators on disconnect
+            for (const key in overlayUiMap) {
+                const ui = overlayUiMap[key];
+                ui.button.classList.remove('overlay-shown', 'overlay-error');
+                if (ui.toggleButton) ui.toggleButton.classList.remove('overlay-shown', 'overlay-error');
+                ui.indicator.textContent = "";
+                ui.indicator.className = 'status-text-indicator'; // Reset classes
+            }
+             updateLastOverlayStatusMsg("Disconnected. Awaiting connection...");
+        }
+        function enableControls() {
+            document.querySelectorAll('.control-group button, .control-group input, .control-group textarea').forEach(el => el.disabled = false);
+        }
 
         connectAblyButton.addEventListener('click', connectToAbly);
 
-        // BRB Listeners
-        showBRBButton.addEventListener('click', () => publishAction('brb-action', { action: 'show' }));
+        // --- Event Listeners for publishing actions ---
+        overlayUiMap.brb.button.addEventListener('click', () => publishAction('brb-action', { action: 'show' }));
         hideBRBButton.addEventListener('click', () => publishAction('brb-action', { action: 'hide' }));
-        // CSO Listeners
-        showCSOButton.addEventListener('click', () => publishAction('cso-action', { action: 'show' }));
+        overlayUiMap.cso.button.addEventListener('click', () => publishAction('cso-action', { action: 'show' }));
         hideCSOButton.addEventListener('click', () => publishAction('cso-action', { action: 'hide' }));
-
-        // Other listeners (Ticker, Lower Third, Text, Logo, Breaking News - same as before)
-        showUpdateTickerButton.addEventListener('click', () => { const text = tickerTextInput.value.trim(); if (!text) { alert("Ticker text required."); tickerTextInput.focus(); return; } publishAction('ticker-action', { action: 'show', text: text }); });
+        
+        overlayUiMap.ticker.button.addEventListener('click', () => { const text = tickerTextInput.value.trim(); if (!text) { alert("Ticker text required."); tickerTextInput.focus(); return; } publishAction('ticker-action', { action: 'show', text: text }); });
         hideTickerButton.addEventListener('click', () => publishAction('ticker-action', { action: 'hide' }));
-        showLowerThirdButton.addEventListener('click', () => { const name = ltNameInput.value.trim(); const title = ltTitleInput.value.trim(); const affiliation = ltAffiliationInput.value.trim(); if (!name) { alert("LT Name required."); ltNameInput.focus(); return; } publishAction('lower-third-action', { action: 'show', name: name, title: title, affiliation: affiliation }); });
+        
+        overlayUiMap.lowerThird.button.addEventListener('click', () => { const name = ltNameInput.value.trim(); const title = ltTitleInput.value.trim(); const affiliation = ltAffiliationInput.value.trim(); if (!name) { alert("LT Name required."); ltNameInput.focus(); return; } publishAction('lower-third-action', { action: 'show', name: name, title: title, affiliation: affiliation }); });
         hideLowerThirdButton.addEventListener('click', () => publishAction('lower-third-action', { action: 'hide' }));
-        showTextButton.addEventListener('click', () => publishAction('overlay-action', { action: 'show' }));
+        
+        overlayUiMap.text.button.addEventListener('click', () => publishAction('overlay-action', { action: 'show' }));
         hideTextButton.addEventListener('click', () => publishAction('overlay-action', { action: 'hide' }));
-        toggleTextButton.addEventListener('click', () => publishAction('overlay-action', { action: 'toggle' }));
-        showLogoButton.addEventListener('click', () => publishAction('logo-action', { action: 'show' }));
+        overlayUiMap.text.toggleButton.addEventListener('click', () => publishAction('overlay-action', { action: 'toggle' }));
+        
+        overlayUiMap.logo.button.addEventListener('click', () => publishAction('logo-action', { action: 'show' }));
         hideLogoButton.addEventListener('click', () => publishAction('logo-action', { action: 'hide' }));
-        toggleLogoButton.addEventListener('click', () => publishAction('logo-action', { action: 'toggle' }));
-        showBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'show' }));
+        overlayUiMap.logo.toggleButton.addEventListener('click', () => publishAction('logo-action', { action: 'toggle' }));
+        
+        overlayUiMap.breakingNews.button.addEventListener('click', () => publishAction('breaking-news-action', { action: 'show' }));
         hideBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'hide' }));
-        toggleBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'toggle' }));
+        overlayUiMap.breakingNews.toggleButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'toggle' }));
 
+        // Initial state
         disableControls();
         const savedApiKey = localStorage.getItem('streamWeaverAblyApiKey');
         if (savedApiKey) ablyApiKeyInput.value = savedApiKey;
