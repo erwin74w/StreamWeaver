@@ -12,7 +12,7 @@
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input[type="text"], input[type="password"], textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
         textarea { min-height: 60px; resize: vertical; }
-        button { color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; margin-bottom: 10px; font-size: 16px; transition: background-color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease; }
+        button { color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; /* Reduced margin-right for button */ margin-bottom: 10px; font-size: 16px; transition: background-color 0.2s ease, opacity 0.2s ease; }
         button:hover { opacity: 0.9; }
         button.primary { background-color: #007bff; }
         button.secondary { background-color: #6c757d; }
@@ -22,38 +22,49 @@
         button.warning { background-color: #ffc107; color: black !important; } 
         button.dark-green { background-color: #00695c; }
 
-        /* Styles for overlay status indication on buttons */
-        button.overlay-shown {
-            box-shadow: inset 0 0 0 3px #28a745, 0 0 8px rgba(40, 167, 69, 0.7); /* Brighter Green inset and outer glow */
-            /* background-color: #218838; */ /* Optionally change base color too */
+        /* --- NEW Status Light Styles --- */
+        .status-light-container {
+            display: inline-flex; /* Use flex to align light and button */
+            align-items: center; /* Vertically align items */
+            margin-right: 10px; /* Space between light+button combo and next element */
         }
-        button.overlay-error {
-            box-shadow: inset 0 0 0 3px #dc3545, 0 0 8px rgba(220, 53, 69, 0.7); /* Brighter Red inset and outer glow */
-            /* background-color: #c82333; */ /* Optionally change base color too */
-        }
-        .status-text-indicator {
+
+        .status-light {
+            width: 18px;       /* Size of the circle */
+            height: 18px;      /* Size of the circle */
+            border-radius: 50%; /* Makes it a circle */
+            margin-right: 8px; /* Space between the light and its button */
             display: inline-block;
-            font-size: 0.85em;
-            font-style: italic;
-            margin-left: 8px; /* Increased margin */
-            padding: 3px 7px; /* Slightly larger padding */
-            border-radius: 4px;
-            min-width: 50px; /* Give it some base width */
-            text-align: center;
-            font-weight: bold;
-            vertical-align: middle; /* Align with button text better */
+            vertical-align: middle;
+            border: 1px solid rgba(0,0,0,0.2); /* Subtle border for definition */
+            box-shadow: 0 0 3px rgba(0,0,0,0.2); /* Subtle shadow */
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
-        .status-visible { color: white; background-color: #28a745; border: 1px solid #1e7e34;}
-        .status-hidden { color: #495057; background-color: #e9ecef; border: 1px solid #ced4da;}
-        .status-error { color: white; background-color: #dc3545; border: 1px solid #bd2130;}
-        .status-unknown { color: #6c757d; background-color: #f8f9fa; border: 1px solid #dee2e6;}
+
+        .status-light.visible {
+            background-color: #28a745; /* Green for visible */
+            box-shadow: 0 0 6px #28a745; /* Green glow */
+        }
+        .status-light.hidden {
+            background-color: #dc3545; /* Red for hidden (as requested) */
+            box-shadow: 0 0 6px #dc3545; /* Red glow */
+        }
+        .status-light.error {
+            background-color: #ffc107; /* Yellow/Orange for error */
+            box-shadow: 0 0 6px #ffc107; /* Yellow/Orange glow */
+            /* You could add a pulsing animation for errors */
+        }
+        .status-light.unknown {
+            background-color: #6c757d; /* Grey for unknown/initial */
+        }
+        /* --- End of Status Light Styles --- */
 
 
         .control-group { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
         .control-group:last-child { border-bottom: none; }
-        .fullscreen-controls button { margin-bottom: 5px; }
+        .fullscreen-controls button, .fullscreen-controls .status-light-container { margin-bottom: 5px; } /* Ensure containers also get margin */
         .input-group { margin-bottom: 10px; }
-        #status-footer-log { margin-top: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; } /* Renamed ID */
+        #status-footer-log { margin-top: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -67,19 +78,29 @@
             <div id="ablyStatus" style="margin-top: 5px; font-style: italic;">Not connected.</div>
         </div>
 
+        <!-- Example of how to structure for Fullscreen Modes -->
         <div class="control-group fullscreen-controls">
             <h2>Fullscreen Modes</h2>
-            <button id="showBRB" class="warning">Show BRB Screen</button><span id="brb-status-indicator" class="status-text-indicator status-unknown">---</span>
+            <div class="status-light-container">
+                <span id="brb-status-light" class="status-light unknown"></span>
+                <button id="showBRB" class="warning">Show BRB Screen</button>
+            </div>
             <button id="hideBRB" class="secondary">Hide BRB Screen</button>
             <br>
-            <button id="showCSO" class="dark-green">Show CSO Screen</button><span id="cso-status-indicator" class="status-text-indicator status-unknown">---</span>
+            <div class="status-light-container">
+                <span id="cso-status-light" class="status-light unknown"></span>
+                <button id="showCSO" class="dark-green">Show CSO Screen</button>
+            </div>
             <button id="hideCSO" class="secondary">Hide CSO Screen</button>
         </div>
 
         <div class="control-group">
             <h2>News Ticker Control</h2>
             <div class="input-group"><label for="tickerTextInput">Ticker Text:</label><textarea id="tickerTextInput" placeholder="Enter text to scroll..."></textarea></div>
-            <button id="showUpdateTicker" class="success">Show / Update Ticker</button><span id="ticker-status-indicator" class="status-text-indicator status-unknown">---</span>
+            <div class="status-light-container">
+                <span id="ticker-status-light" class="status-light unknown"></span>
+                <button id="showUpdateTicker" class="success">Show / Update Ticker</button>
+            </div>
             <button id="hideTicker" class="secondary">Hide Ticker</button>
         </div>
 
@@ -88,27 +109,39 @@
             <div class="input-group"><label for="ltNameInput">Name:</label><input type="text" id="ltNameInput" placeholder="e.g., Dr. Jane Smith"></div>
             <div class="input-group"><label for="ltTitleInput">Title:</label><input type="text" id="ltTitleInput" placeholder="e.g., Chief Medical Officer"></div>
             <div class="input-group"><label for="ltAffiliationInput">Affiliation:</label><input type="text" id="ltAffiliationInput" placeholder="e.g., City Hospital"></div>
-            <button id="showLowerThird" class="info">Show Lower Third</button><span id="lowerThird-status-indicator" class="status-text-indicator status-unknown">---</span>
+            <div class="status-light-container">
+                <span id="lowerThird-status-light" class="status-light unknown"></span>
+                <button id="showLowerThird" class="info">Show Lower Third</button>
+            </div>
             <button id="hideLowerThird" class="secondary">Hide Lower Third</button>
         </div>
 
         <div class="control-group">
             <h2>Text Overlay (Subtitles)</h2>
-            <button id="showTextOverlay" class="primary">Show Text</button><span id="text-status-indicator" class="status-text-indicator status-unknown">---</span>
+            <div class="status-light-container">
+                <span id="text-status-light" class="status-light unknown"></span>
+                <button id="showTextOverlay" class="primary">Show Text</button>
+            </div>
             <button id="hideTextOverlay" class="primary">Hide Text</button>
             <button id="toggleTextOverlay" class="secondary">Toggle Text</button>
         </div>
 
         <div class="control-group">
             <h2>Logo Overlay</h2>
-            <button id="showLogo" class="primary">Show Logo</button><span id="logo-status-indicator" class="status-text-indicator status-unknown">---</span>
+            <div class="status-light-container">
+                <span id="logo-status-light" class="status-light unknown"></span>
+                <button id="showLogo" class="primary">Show Logo</button>
+            </div>
             <button id="hideLogo" class="primary">Hide Logo</button>
             <button id="toggleLogo" class="secondary">Toggle Logo</button>
         </div>
 
         <div class="control-group">
             <h2>Breaking News Overlay</h2>
-            <button id="showBreakingNews" class="alert">Show Breaking News</button><span id="breakingNews-status-indicator" class="status-text-indicator status-unknown">---</span>
+            <div class="status-light-container">
+                <span id="breakingNews-status-light" class="status-light unknown"></span>
+                <button id="showBreakingNews" class="alert">Show Breaking News</button>
+            </div>
             <button id="hideBreakingNews" class="alert">Hide Breaking News</button>
             <button id="toggleBreakingNews" class="secondary alert">Toggle Breaking News</button>
         </div>
@@ -121,7 +154,7 @@
         const connectAblyButton = document.getElementById('connectAbly');
         const ablyStatusElement = document.getElementById('ablyStatus');
         const lastActionElement = document.getElementById('lastAction');
-        const generalLogElement = document.getElementById('generalLog'); // Renamed from lastOverlayStatusElement
+        const generalLogElement = document.getElementById('generalLog');
 
 
         // Ticker, LT inputs
@@ -130,26 +163,29 @@
         const ltTitleInput = document.getElementById('ltTitleInput');
         const ltAffiliationInput = document.getElementById('ltAffiliationInput');
 
-        // Mapping overlay IDs (from status messages) to their control button and status indicator
-        // Note: 'Show' buttons are targeted for the primary visual state (box-shadow).
-        // Toggle buttons will also get this state if they exist.
+        // Mapping overlay IDs to their status light element
         const overlayUiMap = {
-            brb: { showButton: document.getElementById('showBRB'), indicator: document.getElementById('brb-status-indicator'), toggleButton: null },
-            cso: { showButton: document.getElementById('showCSO'), indicator: document.getElementById('cso-status-indicator'), toggleButton: null },
-            ticker: { showButton: document.getElementById('showUpdateTicker'), indicator: document.getElementById('ticker-status-indicator'), toggleButton: null },
-            lowerThird: { showButton: document.getElementById('showLowerThird'), indicator: document.getElementById('lowerThird-status-indicator'), toggleButton: null },
-            text: { showButton: document.getElementById('showTextOverlay'), indicator: document.getElementById('text-status-indicator'), toggleButton: document.getElementById('toggleTextOverlay') },
-            logo: { showButton: document.getElementById('showLogo'), indicator: document.getElementById('logo-status-indicator'), toggleButton: document.getElementById('toggleLogo') },
-            breakingNews: { showButton: document.getElementById('showBreakingNews'), indicator: document.getElementById('breakingNews-status-indicator'), toggleButton: document.getElementById('toggleBreakingNews') }
+            brb: { light: document.getElementById('brb-status-light'), showButton: document.getElementById('showBRB'), toggleButton: null },
+            cso: { light: document.getElementById('cso-status-light'), showButton: document.getElementById('showCSO'), toggleButton: null },
+            ticker: { light: document.getElementById('ticker-status-light'), showButton: document.getElementById('showUpdateTicker'), toggleButton: null },
+            lowerThird: { light: document.getElementById('lowerThird-status-light'), showButton: document.getElementById('showLowerThird'), toggleButton: null },
+            text: { light: document.getElementById('text-status-light'), showButton: document.getElementById('showTextOverlay'), toggleButton: document.getElementById('toggleTextOverlay') },
+            logo: { light: document.getElementById('logo-status-light'), showButton: document.getElementById('showLogo'), toggleButton: document.getElementById('toggleLogo') },
+            breakingNews: { light: document.getElementById('breakingNews-status-light'), showButton: document.getElementById('showBreakingNews'), toggleButton: document.getElementById('toggleBreakingNews') }
         };
-        // All other buttons (hide buttons etc.)
-        const hideBRBButton = document.getElementById('hideBRB');
-        const hideCSOButton = document.getElementById('hideCSO');
-        const hideTickerButton = document.getElementById('hideTicker');
-        const hideLowerThirdButton = document.getElementById('hideLowerThird');
-        const hideTextButton = document.getElementById('hideTextOverlay');
-        const hideLogoButton = document.getElementById('hideLogo');
-        const hideBreakingNewsButton = document.getElementById('hideBreakingNews');
+        
+        // All control buttons for enabling/disabling
+        const allControlButtons = [
+            connectAblyButton,
+            document.getElementById('showBRB'), document.getElementById('hideBRB'),
+            document.getElementById('showCSO'), document.getElementById('hideCSO'),
+            document.getElementById('showUpdateTicker'), document.getElementById('hideTicker'),
+            document.getElementById('showLowerThird'), document.getElementById('hideLowerThird'),
+            document.getElementById('showTextOverlay'), document.getElementById('hideTextOverlay'), document.getElementById('toggleTextOverlay'),
+            document.getElementById('showLogo'), document.getElementById('hideLogo'), document.getElementById('toggleLogo'),
+            document.getElementById('showBreakingNews'), document.getElementById('hideBreakingNews'), document.getElementById('toggleBreakingNews')
+        ];
+        const allControlInputs = [ablyApiKeyInput, tickerTextInput, ltNameInput, ltTitleInput, ltAffiliationInput];
 
 
         const CONTROL_CHANNEL_NAME = 'streamweaver-control';
@@ -210,46 +246,31 @@
             statusChannel.subscribe('update', (message) => {
                 const { overlayId, state, message: statusMsg, data } = message.data;
                 
-                // Log specific overlay updates to console for debugging
                 if (overlayId !== 'system') {
                     console.log(`Dashboard Rcvd Status for ${overlayId}: State: ${state}, Msg: ${statusMsg || 'N/A'}, Data:`, data);
                 }
 
-
                 const ui = overlayUiMap[overlayId];
-                if (ui) {
-                    // Clear previous button states (box-shadow)
-                    ui.showButton.classList.remove('overlay-shown', 'overlay-error');
-                    if (ui.toggleButton) ui.toggleButton.classList.remove('overlay-shown', 'overlay-error');
-
-                    // Reset indicator classes and text
-                    ui.indicator.className = 'status-text-indicator'; // Base class
-                    ui.indicator.textContent = '---'; // Default text
+                if (ui && ui.light) {
+                    // Reset light classes
+                    ui.light.className = 'status-light'; 
 
                     if (state === 'shown') {
-                        ui.showButton.classList.add('overlay-shown');
-                        if (ui.toggleButton) ui.toggleButton.classList.add('overlay-shown'); 
-                        ui.indicator.classList.add('status-visible');
-                        ui.indicator.textContent = "Visible";
+                        ui.light.classList.add('visible');
                     } else if (state === 'hidden') {
-                        // 'overlay-shown' is already removed from showButton.
-                        // If a toggle button was 'shown', it needs to be cleared.
-                        if (ui.toggleButton) ui.toggleButton.classList.remove('overlay-shown');
-                        ui.indicator.classList.add('status-hidden');
-                        ui.indicator.textContent = "Hidden";
+                        ui.light.classList.add('hidden');
                     } else if (state === 'error') {
-                        ui.showButton.classList.add('overlay-error');
-                        if (ui.toggleButton) ui.toggleButton.classList.add('overlay-error');
-                        ui.indicator.classList.add('status-error');
-                        ui.indicator.textContent = `Error`; // Keep it concise for the indicator
+                        ui.light.classList.add('error');
                         console.error(`Overlay Error (${overlayId}): ${statusMsg || 'Unknown error'}`, data);
-                        updateGeneralLog(`Error on ${overlayId}: ${statusMsg || 'Unknown error'}`); // Also log to general for visibility
+                        updateGeneralLog(`Error on ${overlayId}: ${statusMsg || 'Unknown error'}`);
+                    } else {
+                        ui.light.classList.add('unknown'); // Fallback for unexpected states
                     }
                 } else if (overlayId === 'system') {
-                     updateGeneralLog(`System: ${statusMsg || state}`); // Log system messages to general log
-                } else {
-                    console.warn("Dashboard: Received status for unmapped overlayId:", overlayId);
-                    updateGeneralLog(`Received unmapped status for: ${overlayId} - ${state}`);
+                     updateGeneralLog(`System: ${statusMsg || state}`);
+                } else if (overlayId !== 'system') { // Check if it's not system and ui or ui.light is missing
+                    console.warn("Dashboard: Received status for unmapped overlayId or missing light element:", overlayId);
+                    updateGeneralLog(`Received unmapped/incomplete UI status for: ${overlayId} - ${state}`);
                 }
             });
             console.log("Dashboard: Subscribed to overlay status updates on channel:", STATUS_CHANNEL_NAME);
@@ -257,49 +278,50 @@
         }
 
         function disableControls() {
-            document.querySelectorAll('.control-group button, .control-group input, .control-group textarea').forEach(el => el.disabled = true);
-            ablyApiKeyInput.disabled = false;
-            connectAblyButton.disabled = false;
-            // Reset UI indicators on disconnect
+            allControlButtons.forEach(btn => btn.disabled = true);
+            allControlInputs.forEach(input => input.disabled = true);
+            
+            ablyApiKeyInput.disabled = false; // Always allow API key input
+            connectAblyButton.disabled = false; // Always allow connect button
+
+            // Reset UI lights on disconnect
             for (const key in overlayUiMap) {
-                const ui = overlayUiMap[key];
-                ui.showButton.classList.remove('overlay-shown', 'overlay-error');
-                if (ui.toggleButton) ui.toggleButton.classList.remove('overlay-shown', 'overlay-error');
-                ui.indicator.textContent = "---";
-                ui.indicator.className = 'status-text-indicator status-unknown'; // Reset classes
+                if (overlayUiMap[key] && overlayUiMap[key].light) {
+                    overlayUiMap[key].light.className = 'status-light unknown';
+                }
             }
-             updateGeneralLog("Disconnected. Awaiting connection...");
+            updateGeneralLog("Disconnected. Awaiting connection...");
         }
         function enableControls() {
-            document.querySelectorAll('.control-group button, .control-group input, .control-group textarea').forEach(el => el.disabled = false);
+            allControlButtons.forEach(btn => btn.disabled = false);
+            allControlInputs.forEach(input => input.disabled = false);
              updateGeneralLog("Controls enabled. Awaiting overlay status...");
         }
 
         connectAblyButton.addEventListener('click', connectToAbly);
 
         // --- Event Listeners for publishing actions ---
-        // (Using showButton from map for consistency)
         overlayUiMap.brb.showButton.addEventListener('click', () => publishAction('brb-action', { action: 'show' }));
-        hideBRBButton.addEventListener('click', () => publishAction('brb-action', { action: 'hide' }));
+        document.getElementById('hideBRB').addEventListener('click', () => publishAction('brb-action', { action: 'hide' }));
         overlayUiMap.cso.showButton.addEventListener('click', () => publishAction('cso-action', { action: 'show' }));
-        hideCSOButton.addEventListener('click', () => publishAction('cso-action', { action: 'hide' }));
+        document.getElementById('hideCSO').addEventListener('click', () => publishAction('cso-action', { action: 'hide' }));
         
         overlayUiMap.ticker.showButton.addEventListener('click', () => { const text = tickerTextInput.value.trim(); if (!text) { alert("Ticker text required."); tickerTextInput.focus(); return; } publishAction('ticker-action', { action: 'show', text: text }); });
-        hideTickerButton.addEventListener('click', () => publishAction('ticker-action', { action: 'hide' }));
+        document.getElementById('hideTicker').addEventListener('click', () => publishAction('ticker-action', { action: 'hide' }));
         
         overlayUiMap.lowerThird.showButton.addEventListener('click', () => { const name = ltNameInput.value.trim(); const title = ltTitleInput.value.trim(); const affiliation = ltAffiliationInput.value.trim(); if (!name) { alert("LT Name required."); ltNameInput.focus(); return; } publishAction('lower-third-action', { action: 'show', name: name, title: title, affiliation: affiliation }); });
-        hideLowerThirdButton.addEventListener('click', () => publishAction('lower-third-action', { action: 'hide' }));
+        document.getElementById('hideLowerThird').addEventListener('click', () => publishAction('lower-third-action', { action: 'hide' }));
         
         overlayUiMap.text.showButton.addEventListener('click', () => publishAction('overlay-action', { action: 'show' }));
-        hideTextButton.addEventListener('click', () => publishAction('overlay-action', { action: 'hide' }));
+        document.getElementById('hideTextOverlay').addEventListener('click', () => publishAction('overlay-action', { action: 'hide' }));
         overlayUiMap.text.toggleButton.addEventListener('click', () => publishAction('overlay-action', { action: 'toggle' }));
         
         overlayUiMap.logo.showButton.addEventListener('click', () => publishAction('logo-action', { action: 'show' }));
-        hideLogoButton.addEventListener('click', () => publishAction('logo-action', { action: 'hide' }));
+        document.getElementById('hideLogo').addEventListener('click', () => publishAction('logo-action', { action: 'hide' }));
         overlayUiMap.logo.toggleButton.addEventListener('click', () => publishAction('logo-action', { action: 'toggle' }));
         
         overlayUiMap.breakingNews.showButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'show' }));
-        hideBreakingNewsButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'hide' }));
+        document.getElementById('hideBreakingNews').addEventListener('click', () => publishAction('breaking-news-action', { action: 'hide' }));
         overlayUiMap.breakingNews.toggleButton.addEventListener('click', () => publishAction('breaking-news-action', { action: 'toggle' }));
 
         // Initial state
@@ -308,10 +330,11 @@
         if (savedApiKey) ablyApiKeyInput.value = savedApiKey;
         ablyApiKeyInput.addEventListener('input', () => { localStorage.setItem('streamWeaverAblyApiKey', ablyApiKeyInput.value); });
 
-        // Set initial state for indicators to '---' and unknown
+        // Set initial state for lights to 'unknown'
         Object.values(overlayUiMap).forEach(ui => {
-            ui.indicator.textContent = '---';
-            ui.indicator.classList.add('status-unknown');
+            if (ui.light) {
+                ui.light.classList.add('unknown');
+            }
         });
 
     </script>
