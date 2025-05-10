@@ -1,20 +1,19 @@
 // script.js (for index.html - Overlay Logic)
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Text Overlay Elements ---
+    // ... (previous element getters for logo, breaking news, text overlay, lower third)
     const overlayElement = document.getElementById('streamweaver-overlay');
     const overlayTextElement = document.getElementById('overlay-text');
-
-    // --- Logo Overlay Elements ---
     const logoContainerElement = document.getElementById('logo-container');
-
-    // --- Breaking News Overlay Elements ---
     const breakingNewsContainerElement = document.getElementById('breaking-news-container');
-
-    // --- Lower Third Elements ---
     const lowerThirdContainerElement = document.getElementById('lower-third-container');
     const ltNameElement = document.getElementById('lt-name');
     const ltTitleElement = document.getElementById('lt-title');
     const ltAffiliationElement = document.getElementById('lt-affiliation');
+
+    // --- Ticker Overlay Elements ---
+    const tickerContainerElement = document.getElementById('ticker-container');
+    const tickerContentWrapperElement = document.getElementById('ticker-content-wrapper');
+    const tickerTextSpanElement = document.getElementById('ticker-text-span');
 
     const ABLY_API_KEY = 'PpmbHg.J6_8kg:qC-BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik'; 
     const CHANNEL_NAME = 'streamweaver-control'; 
@@ -23,7 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn("Ably API Key placeholder active. User needs to insert actual key.");
     }
 
-    // --- 1. Fetch and display initial overlay data (for text overlay) ---
+    // --- 1. Fetch initial overlay data (for text overlay) ---
+    // ... (same as before)
     fetch('./overlay_data.json') 
         .then(response => response.ok ? response.json() : Promise.reject(`HTTP error! status: ${response.status}`))
         .then(data => overlayTextElement.textContent = data?.message || "Overlay Ready")
@@ -32,72 +32,69 @@ document.addEventListener('DOMContentLoaded', () => {
             if(overlayTextElement) overlayTextElement.textContent = "Error loading data";
         });
 
-    // --- 2. Text Overlay Show/Hide Functions ---
-    function showTextOverlay() {
-        if (overlayElement) {
-            overlayElement.classList.add('show');
-            console.log("Text Overlay: SHOWN");
-        }
+    // --- Show/Hide Functions for other overlays (same as before) ---
+    function showTextOverlay() { /* ... */ }
+    function hideTextOverlay() { /* ... */ }
+    function showLogo() { /* ... */ }
+    function hideLogo() { /* ... */ }
+    function showBreakingNews() { /* ... */ }
+    function hideBreakingNews() { /* ... */ }
+    function showLowerThird(data) { /* ... (as before) */ }
+    function hideLowerThird() { /* ... (as before) */ }
+    if (overlayElement) { // Quick check for text overlay functions
+        showTextOverlay = function() { overlayElement.classList.add('show'); console.log("Text Overlay: SHOWN"); };
+        hideTextOverlay = function() { overlayElement.classList.remove('show'); console.log("Text Overlay: HIDDEN"); };
     }
-    function hideTextOverlay() {
-        if (overlayElement) {
-            overlayElement.classList.remove('show');
-            console.log("Text Overlay: HIDDEN");
-        }
+    if (logoContainerElement) {
+        showLogo = function() { logoContainerElement.classList.add('show-logo'); console.log("Logo Overlay: SHOWN"); };
+        hideLogo = function() { logoContainerElement.classList.remove('show-logo'); console.log("Logo Overlay: HIDDEN"); };
     }
-    
-    // --- 3. Logo Overlay Show/Hide Functions ---
-    function showLogo() {
-        if (logoContainerElement) {
-            logoContainerElement.classList.add('show-logo');
-            console.log("Logo Overlay: SHOWN");
-        }
+    if (breakingNewsContainerElement) {
+        showBreakingNews = function() { breakingNewsContainerElement.classList.add('show-breaking-news'); console.log("BN Overlay: SHOWN"); };
+        hideBreakingNews = function() { breakingNewsContainerElement.classList.remove('show-breaking-news'); console.log("BN Overlay: HIDDEN"); };
     }
-    function hideLogo() {
-        if (logoContainerElement) {
-            logoContainerElement.classList.remove('show-logo');
-            console.log("Logo Overlay: HIDDEN");
-        }
-    }
-
-    // --- 4. Breaking News Overlay Show/Hide Functions ---
-    function showBreakingNews() {
-        if (breakingNewsContainerElement) {
-            breakingNewsContainerElement.classList.add('show-breaking-news');
-            console.log("Breaking News Overlay: SHOWN");
-        }
-    }
-    function hideBreakingNews() {
-        if (breakingNewsContainerElement) {
-            breakingNewsContainerElement.classList.remove('show-breaking-news');
-            console.log("Breaking News Overlay: HIDDEN");
-        }
+    if (lowerThirdContainerElement && ltNameElement && ltTitleElement && ltAffiliationElement) {
+        showLowerThird = function(data) {
+            ltNameElement.textContent = data.name || ""; ltTitleElement.textContent = data.title || ""; ltAffiliationElement.textContent = data.affiliation || "";
+            ltNameElement.style.display = data.name ? 'block' : 'none'; ltTitleElement.style.display = data.title ? 'block' : 'none'; ltAffiliationElement.style.display = data.affiliation ? 'block' : 'none';
+            lowerThirdContainerElement.classList.add('show-lower-third'); console.log("LT: SHOWN", data);
+        };
+        hideLowerThird = function() { lowerThirdContainerElement.classList.remove('show-lower-third'); console.log("LT: HIDDEN"); };
     }
 
-    // --- 5. Lower Third Show/Hide Functions ---
-    function showLowerThird(data) {
-        if (lowerThirdContainerElement && ltNameElement && ltTitleElement && ltAffiliationElement) {
-            ltNameElement.textContent = data.name || "Name";
-            ltTitleElement.textContent = data.title || "Title";
-            ltAffiliationElement.textContent = data.affiliation || "Affiliation";
+
+    // --- Ticker Show/Hide/Update Functions ---
+    function showTicker(data) {
+        if (tickerContainerElement && tickerTextSpanElement && tickerContentWrapperElement) {
+            const newText = data.text || "StreamWeaver Ticker Active...";
+            // Add extra non-breaking spaces to create a visual gap for continuous scroll illusion
+            const trailingSpaces = " \u00A0\u00A0\u00A0\u00A0\u00A0\u00A0 "; 
+            tickerTextSpanElement.textContent = newText + trailingSpaces;
+
+            // Restart animation: remove class, trigger reflow, add class back
+            // This ensures the animation recalculates based on new text width if it changed
+            // and makes it start from the beginning.
+            if (tickerContentWrapperElement.classList.contains('animate')) {
+                tickerContentWrapperElement.classList.remove('animate');
+                void tickerContentWrapperElement.offsetWidth; // Force reflow to reset animation
+            }
+            tickerContentWrapperElement.classList.add('animate');
             
-            // Ensure elements are visible if they were hidden by empty content previously
-            ltNameElement.style.display = data.name ? 'block' : 'none';
-            ltTitleElement.style.display = data.title ? 'block' : 'none';
-            ltAffiliationElement.style.display = data.affiliation ? 'block' : 'none';
-
-            lowerThirdContainerElement.classList.add('show-lower-third');
-            console.log("Lower Third: SHOWN with data:", data);
-        }
-    }
-    function hideLowerThird() {
-        if (lowerThirdContainerElement) {
-            lowerThirdContainerElement.classList.remove('show-lower-third');
-            console.log("Lower Third: HIDDEN");
+            tickerContainerElement.classList.add('show-ticker');
+            console.log("Ticker: SHOWN/UPDATED with text:", newText);
         }
     }
 
-    // --- 6. Ably Client Setup ---
+    function hideTicker() {
+        if (tickerContainerElement && tickerContentWrapperElement) {
+            tickerContainerElement.classList.remove('show-ticker');
+            tickerContentWrapperElement.classList.remove('animate'); // Stop animation
+            console.log("Ticker: HIDDEN");
+        }
+    }
+
+    // --- Ably Client Setup ---
+    // ... (same as before, ensure it's defined once)
     console.log('Overlay: Initializing Ably...');
     const ablyOverlay = new Ably.Realtime(ABLY_API_KEY);
     const controlChannel = ablyOverlay.channels.get(CHANNEL_NAME);
@@ -105,71 +102,35 @@ document.addEventListener('DOMContentLoaded', () => {
     ablyOverlay.connection.on('connected', () => console.log('Overlay: Successfully connected to Ably!'));
     ablyOverlay.connection.on('failed', (err) => console.error('Overlay: Ably connection failed:', err));
     
-    // Subscribe to actions for TEXT OVERLAY
+    // --- Ably Subscriptions (including new Ticker subscription) ---
+    // ... (subscriptions for overlay-action, logo-action, breaking-news-action, lower-third-action as before)
     controlChannel.subscribe('overlay-action', (message) => {
-        console.log('Overlay: Received Ably message on "overlay-action":', message.data);
-        const actionData = message.data; 
-        if (actionData?.action) {
-            switch (actionData.action.toLowerCase()) {
-                case 'show': showTextOverlay(); break;
-                case 'hide': hideTextOverlay(); break;
-                case 'toggle': 
-                    overlayElement.classList.contains('show') ? hideTextOverlay() : showTextOverlay(); 
-                    break;
-                default: console.warn('Overlay: Unknown action for text overlay:', actionData.action);
-            }
-        }
+        const d = message.data; if(d?.action){ switch(d.action.toLowerCase()){ case 'show': showTextOverlay(); break; case 'hide': hideTextOverlay(); break; case 'toggle': overlayElement.classList.contains('show')?hideTextOverlay():showTextOverlay(); break; }}
     });
-
-    // Subscribe to actions for LOGO OVERLAY
     controlChannel.subscribe('logo-action', (message) => {
-        const actionData = message.data;
-        if (actionData?.action) {
-            switch (actionData.action.toLowerCase()) {
-                case 'show': showLogo(); break;
-                case 'hide': hideLogo(); break;
-                case 'toggle':
-                    logoContainerElement.classList.contains('show-logo') ? hideLogo() : showLogo();
-                    break;
-                default: console.warn('Overlay: Unknown action for logo:', actionData.action);
-            }
-        }
+        const d = message.data; if(d?.action){ switch(d.action.toLowerCase()){ case 'show': showLogo(); break; case 'hide': hideLogo(); break; case 'toggle': logoContainerElement.classList.contains('show-logo')?hideLogo():showLogo(); break; }}
     });
-
-    // Subscribe to actions for BREAKING NEWS OVERLAY
     controlChannel.subscribe('breaking-news-action', (message) => {
-        const actionData = message.data;
-        if (actionData?.action) {
-            switch (actionData.action.toLowerCase()) {
-                case 'show': showBreakingNews(); break;
-                case 'hide': hideBreakingNews(); break;
-                case 'toggle':
-                    breakingNewsContainerElement.classList.contains('show-breaking-news') ? hideBreakingNews() : showBreakingNews();
-                    break;
-                default: console.warn('Overlay: Unknown action for breaking news:', actionData.action);
-            }
-        }
+        const d = message.data; if(d?.action){ switch(d.action.toLowerCase()){ case 'show': showBreakingNews(); break; case 'hide': hideBreakingNews(); break; case 'toggle': breakingNewsContainerElement.classList.contains('show-breaking-news')?hideBreakingNews():showBreakingNews(); break; }}
+    });
+    controlChannel.subscribe('lower-third-action', (message) => {
+        const d = message.data; if(d?.action){ switch(d.action.toLowerCase()){ case 'show': showLowerThird(d); break; case 'hide': hideLowerThird(); break; }}
     });
 
-    // Subscribe to actions for LOWER THIRD
-    controlChannel.subscribe('lower-third-action', (message) => {
-        console.log('Overlay: Received Ably message on "lower-third-action":', message.data);
+
+    // Subscribe to actions for the TICKER
+    controlChannel.subscribe('ticker-action', (message) => {
+        console.log('Overlay: Received Ably message on "ticker-action":', message.data);
         const actionData = message.data;
         if (actionData?.action) {
             switch (actionData.action.toLowerCase()) {
-                case 'show':
-                    // Data for lower third (name, title, affiliation) is expected in message.data
-                    showLowerThird(actionData); 
+                case 'show': // This will also handle updates if ticker is already shown
+                    showTicker(actionData); // Expects actionData.text
                     break;
                 case 'hide':
-                    hideLowerThird();
+                    hideTicker();
                     break;
-                // Toggle for Lower Third might not always make sense if data needs to be fresh each time.
-                // For now, we'll just support explicit show/hide.
-                // case 'toggle': 
-                //    lowerThirdContainerElement.classList.contains('show-lower-third') ? hideLowerThird() : showLowerThird(actionData); // Requires data for show
-                //    break;
-                default: console.warn('Overlay: Unknown action for lower third:', actionData.action);
+                default: console.warn('Overlay: Unknown action received for ticker:', actionData.action);
             }
         }
     });
