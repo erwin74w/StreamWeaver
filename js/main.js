@@ -1,24 +1,38 @@
 // js/main.js
-import { OverlayManager } from './overlay-manager.js'; // If this import fails, nothing else runs
+import { OverlayManager } from './overlay-manager.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("StreamWeaver Overlay: DOMContentLoaded, initializing..."); // THIS RUNS
+    console.log("StreamWeaver Overlay: DOMContentLoaded, initializing...");
     
-    try { // Let's add a try-catch here
-        const overlayManager = new OverlayManager(); // <<< ERROR LIKELY HERE OR IN OverlayManager CONSTRUCTOR
+    try {
+        const overlayManager = new OverlayManager(); // Attempt to create instance
         
-        overlayManager.initialize().catch(error => { // Or error in initialize() if constructor passed
-            console.error("StreamWeaver Overlay: Critical error during initialization in main.js.", error);
-            // Fallback display
+        // If constructor didn't throw, attempt to initialize
+        overlayManager.initialize().catch(error => {
+            console.error("StreamWeaver Overlay: Error during overlayManager.initialize() call:", error);
+            const errText = document.getElementById('overlay-text');
+            if (errText) {
+                errText.textContent = "OVERLAY INIT FAILED (initialize method): " + error.message;
+                errText.style.color = "red";
+                const errOverlay = document.getElementById('streamweaver-overlay');
+                if (errOverlay) {
+                    errOverlay.classList.add('show');
+                    errOverlay.style.backgroundColor = "rgba(0,0,0,0.7)";
+                }
+            }
         });
+
     } catch (e) {
-        console.error("StreamWeaver Overlay: CRITICAL ERROR CREATING OverlayManager or calling initialize() in main.js:", e);
+        console.error("StreamWeaver Overlay: CRITICAL ERROR during new OverlayManager() in main.js:", e);
         const errText = document.getElementById('overlay-text');
         if (errText) {
-            errText.textContent = "OVERLAY SYSTEM CRITICAL FAILURE: " + e.message;
+            errText.textContent = "OVERLAY SYSTEM CRITICAL FAILURE (constructor): " + e.message;
             errText.style.color = "red";
-            errText.parentElement.style.opacity = "1";
-            errText.parentElement.style.transform = "translateX(-50%) translateY(0)";
+            const errOverlay = document.getElementById('streamweaver-overlay');
+            if (errOverlay) {
+                errOverlay.classList.add('show');
+                errOverlay.style.backgroundColor = "rgba(0,0,0,0.7)";
+            }
         }
     }
 });
