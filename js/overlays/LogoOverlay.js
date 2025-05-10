@@ -1,28 +1,37 @@
 // js/overlays/LogoOverlay.js
+import { DEBUG } from '../ably-config.js';
+
+const LOG_PREFIX = "[LogoOverlay]";
+const logger = {
+    log: (...args) => DEBUG && console.log(LOG_PREFIX, ...args),
+    error: (...args) => console.error(LOG_PREFIX, ...args),
+};
+
 export class LogoOverlay {
     constructor(elementId) {
         this.containerElement = document.getElementById(elementId);
-        if (!this.containerElement) console.error(`LogoOverlay: Element with ID '${elementId}' not found.`);
+        if (!this.containerElement) logger.error(`Element with ID '${elementId}' not found.`);
+        logger.log("LogoOverlay instance created.");
     }
 
     show() {
         if (this.containerElement) {
             this.containerElement.classList.add('show-logo');
-            console.log("Logo: SHOWN");
+            logger.log("SHOWN");
         }
     }
 
     hide() {
         if (this.containerElement) {
             this.containerElement.classList.remove('show-logo');
-            console.log("Logo: HIDDEN");
+            logger.log("HIDDEN");
         }
     }
 
     toggle() {
         if (this.containerElement) {
             this.containerElement.classList.toggle('show-logo');
-            console.log(`Logo: ${this.isVisible ? 'SHOWN' : 'HIDDEN'}`);
+            logger.log(this.isVisible ? 'SHOWN (toggled)' : 'HIDDEN (toggled)');
         }
     }
 
