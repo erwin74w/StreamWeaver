@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const brbOverlayContainerElement = document.getElementById('brb-overlay-container'); // New
 
     // --- Ably Configuration ---
-    const ABLY_API_KEY = 'YOUR_ABLY_API_KEY_WAS_HERE'; 
+    const ABLY_API_KEY = 'BaNitrxujvNUg2DHRy8tlw3WECMYJispON6PCOik'; 
     const CHANNEL_NAME = 'streamweaver-control'; 
 
     if (ABLY_API_KEY === 'YOUR_ABLY_API_KEY_WAS_HERE' || !ABLY_API_KEY || ABLY_API_KEY.length < 10) {
