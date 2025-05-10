@@ -1,62 +1,90 @@
-/* style.css (for Sleek Bottom Banner) */
+/* style.css */
 body {
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif; /* Fallback font */
-    /* Ensure no overflow issues if the banner is positioned fixed */
-    overflow-x: hidden; 
+    font-family: 'Open Sans', Arial, sans-serif; /* Default font */
+    background-color: transparent; /* Ensure body is transparent for overlay use */
+    overflow: hidden; /* Prevent scrollbars from appearing due to off-screen elements */
 }
 
+/* --- Logo Styles --- */
+#logo-container {
+    position: fixed;
+    top: 20px;    /* Adjust as needed */
+    left: 20px;   /* Adjust as needed */
+    z-index: 1010; /* Higher than text overlay if they could overlap */
+    opacity: 0;
+    visibility: hidden; /* Hidden by default, use visibility for better performance with opacity */
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+#streamweaver-logo-img {
+    display: block;
+    max-width: 150px; /* Adjust as needed, prevents oversized logo */
+    height: auto;     /* Maintain aspect ratio */
+}
+
+#logo-container.show-logo {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+/* --- Text Overlay (Subtitles) Styles --- */
 #streamweaver-overlay {
     position: fixed; 
-    bottom: 10px;    /* Small margin from the absolute bottom edge */
-    left: 0;         /* Align to the left edge */
-    width: 100%;     /* Full width */
-    height: 80px;    /* Fixed height */
+    bottom: 30px;    /* Position from the bottom, adjust as desired for subtitles */
+    left: 50%;       
+    transform: translateX(-50%); /* Center horizontally */
+    width: 80%;      /* Subtitles don't usually span 100% width, adjust as needed */
+    max-width: 900px; /* Max width for wider screens */
     
-    background-color: rgba(0, 0, 0, 0.85); /* Darker semi-transparent black */
-    color: white;                           
+    background-color: transparent; /* OVERLAY BACKGROUND IS TRANSPARENT */
     
-    display: flex;          /* Use flexbox for easy vertical centering of text */
-    align-items: center;    /* Vertically center content (the p tag) */
-    justify-content: center;/* Horizontally center content (the p tag) */
-    padding: 0 40px;        /* Horizontal padding for the text inside the banner */
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    /* Container for text, using flex to center text if it wraps (though unlikely for single line) */
+    display: flex;          
+    align-items: center;    
+    justify-content: center;
+    padding: 10px 20px;     /* Some padding around the text area */
+    box-sizing: border-box; 
 
-    font-family: 'Open Sans', Arial, sans-serif; /* Clean sans-serif font */
-    font-size: 28px;        /* Specified font size */
-    text-align: center;     /* Center the text content within the p tag, if it wraps */
-    
-    border-top: 1px solid rgba(255,255,255,0.1); /* Subtle top border */
-    border-radius: 0;       /* Sharp corners, no rounding */
-    
     z-index: 1000; 
     
-    opacity: 0; /* Start fully transparent for smooth appearance */
+    opacity: 0; /* Start fully transparent for transition */
     /* 
-      Initial position:
-      Translate it down by its own height (80px) + its bottom offset (10px)
-      This ensures it starts completely off-screen below its final position.
+      Initial position for slide-up:
+      Translate it down slightly further than its final position for a smoother entry.
+      Adjust the translateY value as needed for the desired slide distance.
     */
-    transform: translateY(calc(80px + 10px)); 
+    transform: translateX(-50%) translateY(50px); 
     
-    /* 
-      Transition for slide and fade:
-      - transform: for the slide-up/down motion
-      - opacity: for the fade-in/out
-      - cubic-bezier(0.215, 0.610, 0.355, 1.000) is a common ease-out-expo curve for smooth acceleration/deceleration
-    */
     transition: transform 0.4s cubic-bezier(0.215, 0.610, 0.355, 1.000), 
                 opacity 0.4s cubic-bezier(0.215, 0.610, 0.355, 1.000);
 }
 
 #streamweaver-overlay.show {
-    opacity: 1;     /* Make it fully visible */
-    transform: translateY(0); /* Slide it up to its final position (defined by 'bottom: 10px') */
+    opacity: 1;     
+    transform: translateX(-50%) translateY(0); /* Slide it up to its final centered position */
 }
 
-/* Optional: Styles for the text element itself if needed, though flex centering handles most of it */
 #overlay-text {
-    margin: 0; /* Remove default paragraph margins */
-    padding: 0; /* Remove default paragraph padding */
+    margin: 0; 
+    padding: 0; 
+    color: white;                           
+    font-family: 'Open Sans', Arial, sans-serif; 
+    font-size: 32px;        /* Slightly larger for subtitle emphasis */
+    font-weight: bold;      /* Bolder text for subtitles */
+    text-align: center;
+    /* 
+      Subtitle text shadow for readability:
+      A common technique is a slight black outline or a soft shadow.
+      Adjust values for desired effect.
+    */
+    text-shadow: 
+        1px 1px 0px rgba(0,0,0,0.8),  /* Bottom-right */
+        -1px -1px 0px rgba(0,0,0,0.8), /* Top-left */
+        1px -1px 0px rgba(0,0,0,0.8),  /* Top-right */
+        -1px 1px 0px rgba(0,0,0,0.8),  /* Bottom-left */
+        0px 0px 8px rgba(0,0,0,0.9); /* Softer wider shadow */
+    line-height: 1.3; /* Adjust line height if text wraps */
 }
